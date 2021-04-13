@@ -63,6 +63,7 @@ formatTempSeq <- function(d = read.csv("inst/temperature_data/Musselburgh_15752.
 append_TempSeq <- function(temp_stored = read.csv("inst/app/www/temp_data/Musselburgh_15752_2000-2021.csv",
                                                   stringsAsFactors = FALSE, na.strings = ""),
                            date_append = as.Date(Sys.time()),
+                           request = TRUE,
                            username = NULL, password = NULL){
 
   # get latest date from
@@ -70,29 +71,34 @@ append_TempSeq <- function(temp_stored = read.csv("inst/app/www/temp_data/Mussel
 
   ## CliFro request latest temperatures
 
-  # check CliFlo credentials
-  if(is.null(username) | is.null(username)) stop("Include CliFlo login and password when calling append_TempSeq(); see 'https://cliflo.niwa.co.nz/'")
 
-  # add user
-  me <- clifro::cf_user(username = username,
-                        password = password)
-  my.dts <- clifro::cf_datatype(select_1 = 4, select_2 = 2, check_box = 1)
-  my.stations = clifro::cf_station(15752)       # 15752 - Musselburgh station ID
+  if (request) {
 
-  if(!all(temp_stored$Station %in% my.stations$name)){
-    stop("Stored temperatures contain station IDs missing from CliFro request")
+    # check CliFlo credentials
+    if(is.null(username) | is.null(username)) stop("Include CliFlo login and password when calling append_TempSeq(); see 'https://cliflo.niwa.co.nz/'")
+
+    # add user & stations
+    me <- clifro::cf_user(username = username,
+                          password = password)
+    my.dts <- clifro::cf_datatype(select_1 = 4, select_2 = 2, check_box = 1)
+    my.stations = clifro::cf_station(15752)       # 15752 - Musselburgh station ID
+
+    if(!all(temp_stored$Station %in% my.stations$name)){
+      stop("Stored temperatures contain station IDs missing from CliFro request")
+    }
+
+    # fetch data
+    cf.temp_latest = clifro::cf_query(user = me,
+                                      datatype = my.dts,
+                                      station = my.stations,
+                                      start_date = strftime(date_last_stored + 1, format = "%Y-%m-%d 00"),
+                                      end_date = strftime(date_append, format = "%Y-%m-%d 00"))
+    # append updated data to stored
+    temp_append <- rbind(data.frame(temp_stored, source = "stored"),
+                         data.frame(cf.temp_latest, source = "retreived"))
+  } else {
+    temp_append <- data.frame(temp_stored, source = "stored")
   }
-
-  # fetch data
-  cf.temp_latest = clifro::cf_query(user = me,
-                                    datatype = my.dts,
-                                    station = my.stations,
-                                    start_date = strftime(date_last_stored + 1, format = "%Y-%m-%d 00"),
-                                    end_date = strftime(date_append, format = "%Y-%m-%d 00"))
-
-  # append updated data to strored
-  temp_append <- rbind(data.frame(temp_stored, source = "stored"),
-                       data.frame(cf.temp_latest, source = "retreived"))
 
   return(temp_append)
 }
