@@ -2,6 +2,11 @@
 
 This README would normally document whatever steps are necessary to get your application up and running.
 
+## TO DO
+
+* Hide clifro login details
+* Address 0800 start date for daily min max
+
 ### What is this repository for? ###
 
 * Quick summary

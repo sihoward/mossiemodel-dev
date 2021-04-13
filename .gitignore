@@ -48,3 +48,14 @@ Thumbs.db
 *.mov
 *.wmv
 
+# single files
+.Rproj.user
+.Renviron
+MossieModel - dev.url
+*.Rproj
+
+# folders
+sketches/
+emails/
+inst/app/rsconnect
+

@@ -40,12 +40,12 @@ mosqpopn <- function(temp_ts, # temperature time series
                      K_L,     # larval carrying capacity (numbers/km^2)
                      M_max,   # max adult density
                      MTD,     # minimum temperature for mosquito development)
-                     L_1,     # instar densities (1-5)
-                     L_2,
-                     L_3,
-                     L_4,
-                     L_5,
-                     M){      # adult density
+                     L_1 = 0,     # instar densities (1-5)
+                     L_2 = 0,
+                     L_3 = 0,
+                     L_4 = 0,
+                     L_5 = 0,
+                     M = 0){      # adult density
 
   require(deSolve)
 
@@ -114,3 +114,62 @@ mosqpopn <- function(temp_ts, # temperature time series
 
   return(out)
 }
+
+runModel <- function(# burn-in range
+  burnin.dates = seq(as.Date("2019-07-01"), as.Date("2020-06-30"), 1),
+  burnin.reps = 100,
+  # run model between dates (after burn-in)
+  run.dates = seq(as.Date("2020-07-01"), max(temp_seq$Date), 1),
+  # temperature sequence (Date, Tmean)
+  temp_seq = temp_seq[c("Date","Tmean")],
+  b = 100,           # number of female eggs per clutch
+  alpha = 0.073,     # adult mortality rate (1/days)
+  beta = 0.0315,     # larval mortality rate (1/days)
+  K_L = 2710200,     # larval carrying capacity (numbers/km^2)
+  M_max = 1000060,   # max adult density
+  MTD = 7.783,
+  L_1 = 0, L_2 = 0,  L_3 = 0, L_4 = 0, L_5 = 0,
+  M = 100){
+
+  # repeat burn-in temperatures and append with run dates
+  temp_ts <- c(rep(temp_seq$Tmean[temp_seq$Date %in% burnin.dates], burnin.reps),
+               temp_seq$Tmean[temp_seq$Date %in% run.dates])
+
+  # run popn model
+  modOut <- mosqmod::mosqpopn(temp_ts = temp_ts,
+                              b = b,
+                              alpha = alpha,
+                              beta = beta,
+                              K_L = K_L,
+                              M_max = M_max,
+                              MTD = MTD,
+                              L_1 = L_1, L_2 = L_2,  L_3 = L_3, L_4 = L_4, L_5 = L_5,
+                              M = M)
+  modOut <- data.frame(modOut)
+  # add temperature time series
+  modOut$Tmean <- c(NA, temp_ts)
+  # keep only run dates
+  modOut <- subset(modOut, time > (length(burnin.dates) * burnin.reps))
+  # add run dates
+  modOut$Date <- run.dates
+
+  return(modOut)
+}
+
+plotModOut <- function(resdf,
+                       selectPopn = c("L", "L_1", "L_2", "L_3", "L_4", "L_5", "M")){
+
+  # convert to long format
+  d <- tidyr::pivot_longer(resdf[c("time", "Date", "Tmean", selectPopn)], cols = all_of(selectPopn))
+  # respect plotting order of selectPopn
+  d$name <- factor(d$name, levels = unique(d$name))
+
+  gg <- ggplot2::ggplot(d, ggplot2::aes(y = value, x = Date, color = name)) +
+    ggplot2::geom_line() +
+    ggplot2::labs(y = "Number per x")
+
+  return(gg)
+}
+
+
+
