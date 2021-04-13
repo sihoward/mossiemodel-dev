@@ -12,7 +12,7 @@ library(clifro)
 library(readr)
 library(ggplot2)
 # install mosqmod package from repo before pushing to shinyapps
-# devtools::install_github(repo = "sihoward/mossiemodel-dev", ref = "deploy")
+# devtools::install_github(repo = "sihoward/mossiemodel-dev", ref = "master")
 library(mosqmod)
 
 
