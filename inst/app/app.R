@@ -86,6 +86,17 @@ server <- function(session, input, output) {
 
 
 
+    # server: update projected days if end date > projected days --------------
+    observeEvent(input$runDates, {
+        if(input$runDates[2] > max(temp_seq()$Date)){
+            updateNumericInput(session, inputId = "extend_days", value = input$extend_days + as.numeric(input$runDates[2] - max(temp_seq()$Date)))
+        }
+    })
+
+    observeEvent(input$extend_days, {
+        updateDateRangeInput(session, inputId = "runDates", end = max(temp_seq()$Date))
+    })
+
 
 
 
