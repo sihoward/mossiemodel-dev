@@ -92,7 +92,8 @@ server <- function(session, input, output) {
     res <- eventReactive(input$runModel, {
 
         validate(
-            need(!is.na(input$M) & input$M > 0, "Enter a starting number of adult mosquitos > 0")
+            need(!is.na(input$M) & input$M > 0, "Enter a starting number of adult mosquitos > 0"),
+            need(input$M <= 2710200, "Starting number of adults must be < 2710200")
         )
 
         mosqmod::runModel(temp_seq = temp_seq(),
@@ -124,12 +125,6 @@ server <- function(session, input, output) {
         )
 
         mosqmod::plotModOut(resdf = res(), selectPopn = input$selectPopn)
-    })
-
-
-    observe({
-        K_L <- 2710200
-        if(input$M > K_L) updateNumericInput(session = session, inputId = "M", value = K_L)
     })
 
     # server: run lines -------------------------------------------------------
