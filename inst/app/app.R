@@ -90,6 +90,11 @@ server <- function(session, input, output) {
 
 
     res <- eventReactive(input$runModel, {
+
+        validate(
+            need(!is.na(input$M) & input$M > 0, "Enter a starting number of adult mosquitos > 0")
+        )
+
         mosqmod::runModel(temp_seq = temp_seq(),
                           burnin.dates = seq(input$runDates[1] - 365, input$runDates[1] - 1, 1),
                           run.dates = seq(input$runDates[1],
@@ -100,6 +105,12 @@ server <- function(session, input, output) {
     # server: popnplot --------------------------------------------------------
     output$tempplot <- renderPlot({
         print(tail(temp_seq()))
+
+        validate(
+            need(input$runDates[1] >= min(temp_seq()$Date)+365,
+                 sprintf("Select a start date after %s", min(temp_seq()$Date)+364))
+        )
+
         ggplot2::ggplot(dplyr::filter(temp_seq(), Date >= input$runDates[1] & Date <= input$runDates[2]),
                                       ggplot2::aes(y = Tmean, x = Date)) +
                             ggplot2::geom_line() +
@@ -108,6 +119,10 @@ server <- function(session, input, output) {
     })
 
     output$popnplot <- renderPlot({
+        validate(
+            need(!is.null(input$selectPopn), "Select checkbox for plotting adults, larvae or both")
+        )
+
         mosqmod::plotModOut(resdf = res(), selectPopn = input$selectPopn)
     })
 
