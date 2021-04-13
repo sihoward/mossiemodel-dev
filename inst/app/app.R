@@ -73,7 +73,14 @@ server <- function(session, input, output) {
     # get projected temperatures from calendar day mean temperatures
     temp_seq <- reactive({
 
-        updateDateRangeInput(session, inputId = "runDates", end = max(temp_seq$Date))
+        # checks for input$extend_days
+        validate(
+            need(!is.na(input$extend_days), "Enter a number of days to project temperature data ahead")
+        )
+        if(input$extend_days < 0){
+            updateNumericInput(session, inputId = "extend_days", value = 0)
+        }
+
         # project temperature ahead using calendar day means
         if(input$extend_days > 0) {
             # add projected temperatures
