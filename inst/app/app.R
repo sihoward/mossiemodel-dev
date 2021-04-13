@@ -72,14 +72,19 @@ server <- function(session, input, output) {
 
     # get projected temperatures from calendar day mean temperatures
     temp_seq <- reactive({
-        # project temperature ahead using calendar day means
-        temp_projected <- mosqmod::project_TempSeq(temp_seq = temp_stored,
-                                                   extend_days = input$extend_days, lookback_days = 90,
-                                                   calday_means = read.csv("www/temp_data/calday_means.csv"))
-        # add projected dates
-        temp_seq <- dplyr::bind_rows(temp_stored, temp_projected)
 
         updateDateRangeInput(session, inputId = "runDates", end = max(temp_seq$Date))
+        # project temperature ahead using calendar day means
+        if(input$extend_days > 0) {
+            # add projected temperatures
+            temp_projected <-
+                mosqmod::project_TempSeq(temp_seq = temp_stored,
+                                         extend_days = input$extend_days, lookback_days = 90,
+                                         calday_means = read.csv("www/temp_data/calday_means.csv"))
+            temp_seq <- dplyr::bind_rows(temp_stored, temp_projected)
+        } else {
+            temp_seq <- temp_stored
+        }
 
         return(temp_seq)
     })
