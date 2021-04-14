@@ -3,7 +3,7 @@ formatTempSeq <- function(d = read.csv("inst/temperature_data/Musselburgh_15752.
                                        stringsAsFactors = FALSE,
                                        check.names = FALSE)){
 
-  d <- dplyr::rename(d, Date = Date.local., Tmax = Tmax.C., Tmin = Tmin.C.)
+  d <- dplyr::rename(d, Date = .data$Date.local., Tmax = .data$Tmax.C., Tmin = .data$Tmin.C.)
 
   # convert date strings
   d$Date_orig <- d$Date
@@ -35,11 +35,11 @@ formatTempSeq <- function(d = read.csv("inst/temperature_data/Musselburgh_15752.
   # - only replaces missing values
   # - keeps a record of interpolated points with 'interpolated' column
   d$interpolated <- is.na(d$Tmin)|is.na(d$Tmax)
-  Tmin.est <- approx(y = d$Tmin, x = seq_len(nrow(d)),
+  Tmin.est <- stats::approx(y = d$Tmin, x = seq_len(nrow(d)),
                      xout = seq_len(nrow(d)), na.rm = TRUE)$y
   d$Tmin[is.na(d$Tmin)] <- Tmin.est[is.na(d$Tmin)]
 
-  Tmax.est <- approx(y = d$Tmax, x = seq_len(nrow(d)),
+  Tmax.est <- stats::approx(y = d$Tmax, x = seq_len(nrow(d)),
                      xout = seq_len(nrow(d)), na.rm = TRUE)$y
   d$Tmax[is.na(d$Tmax)] <- Tmax.est[is.na(d$Tmax)]
 
@@ -123,7 +123,7 @@ project_TempSeq <- function(temp_seq = temp_seq,
   # adjust historical mean +/- difference between historical and current temps
   # - average difference from calendar day mean for last recorded n days
   # - difference to calendar day mean
-  temp_lookback <- tail(temp_seq, lookback_days)
+  temp_lookback <- utils::tail(temp_seq, lookback_days)
   temp_delta <- mean(temp_lookback$Tmean - temp_lookback$Tmean_10yr)
 
   message(sprintf("%s-day difference in mean and mean calendar day temperatures = %0.3f degreesC", lookback_days, temp_delta))

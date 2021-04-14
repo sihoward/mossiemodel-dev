@@ -47,8 +47,6 @@ mosqpopn <- function(temp_ts, # temperature time series
                      L_5 = 0,
                      M = 0){      # adult density
 
-  require(deSolve)
-
   # mosquito population model as ordinary differential eqns -----------------
   #
   # (see Niebuhr, 2016. Avian malaria transmission dynamics in New Zealand:
@@ -108,7 +106,7 @@ mosqpopn <- function(temp_ts, # temperature time series
   yini <- c(yini, L = sum(yini[c("L_1","L_2","L_3","L_4","L_5")]))
 
   # solve ordinary differential equations over temperature sequence
-  out <- ode(y = yini, func = f,
+  out <- deSolve::ode(y = yini, func = f,
              t = c(0, seq_along(temp_ts)),
              parms = pars, method = "euler")
 
@@ -149,7 +147,7 @@ runModel <- function(# burn-in range
   # add temperature time series
   modOut$Tmean <- c(NA, temp_ts)
   # keep only run dates
-  modOut <- subset(modOut, time > (length(burnin.dates) * burnin.reps))
+  modOut <- subset(modOut, modOut$time > (length(burnin.dates) * burnin.reps))
   # add run dates
   modOut$Date <- run.dates
   # add extra columns from temp_seq

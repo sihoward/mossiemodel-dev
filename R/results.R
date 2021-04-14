@@ -14,7 +14,7 @@ plot_popn <- function(resdf,
   }
 
   # stack selected columns
-  d <- tidyr::pivot_longer(resdf, cols = all_of(selectPopn))
+  d <- tidyr::pivot_longer(resdf, cols = dplyr::all_of(selectPopn))
   # respect plotting order of selectPopn
   d$name <- factor(d$name, levels = unique(d$name))
   # create factor for recorded vs projected temperature estimates
@@ -22,7 +22,9 @@ plot_popn <- function(resdf,
                           levels = c("recorded", "projected"))
 
 
-  gg <- ggplot2::ggplot(d, ggplot2::aes(y = value, x = Date, color = name, size = Temperature)) +
+  gg <-
+    ggplot2::ggplot(d, ggplot2::aes(y = .data$value, x = .data$Date,
+                                    color = .data$name, size = .data$Temperature)) +
     ggplot2::geom_line() +
     ggplot2::scale_size_manual(breaks = c("recorded", "projected"), values = c(0.8,0.3))
 
@@ -50,7 +52,7 @@ plot_popn_years <- function(resdf,
   }
 
   # stack selected columns
-  d <- tidyr::pivot_longer(resdf, cols = all_of(selectPopn))
+  d <- tidyr::pivot_longer(resdf, cols = dplyr::all_of(selectPopn))
   # respect plotting order of selectPopn
   d$name <- factor(d$name, levels = unique(d$name))
   # calendar year
@@ -60,15 +62,17 @@ plot_popn_years <- function(resdf,
   # drop any leap days
   d <- d[!grepl("02-29", format(d$Date, "%m-%d")),]
   # align start of each year with first date in sequence
-  d <- dplyr::mutate(dplyr::group_by(d, Year), Date = min(d$Date) + (Date - min(Date)))
+  d <- dplyr::mutate(dplyr::group_by(d, .data$Year),
+                     Date = min(d$Date) + (.data$Date - min(.data$Date)))
   # make year discrete
   d$Year <- factor(d$Year)
   # create factor for recorded vs projected temperature estimates
   d$Temperature <- factor(ifelse(d$source %in% "projected", "projected", "recorded"),
                           levels = c("recorded", "projected"))
 
-  gg <- ggplot2::ggplot(d, ggplot2::aes(y = value, x = Date, color = Year, group = Year,
-                                        size = Temperature)) +
+  gg <- ggplot2::ggplot(d, ggplot2::aes(y = .data$value, x = .data$Date,
+                                        color = .data$Year, group = .data$Year,
+                                        size = .data$Temperature)) +
     ggplot2::geom_line() +
     ggplot2::labs(y = "Number per x") +
     ggplot2::scale_x_date(date_labels = "%b") +
