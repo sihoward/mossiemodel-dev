@@ -27,23 +27,29 @@ ui <- fluidPage(
         sidebarPanel(dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
                      numericInput(inputId = "M",label = "Starting adult mosquitos (M)", value = 100),
                      numericInput(inputId = "extend_days",label = "Project temperature by n days", value = 30),
-                     actionButton(inputId = "runModel", label = "Run model"),
-                     checkboxGroupInput(inputId = "selectPopn", label = "Select population to plot",
-                                        choiceNames = list("Adults","Larvae"),
-                                        choiceValues = list("M","L"),
-                                        selected = "M")),
-
+                     numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783)
+        ),
         # Show a plot of the generated distribution
         mainPanel(
-            list(plotOutput("popnplot"),
-                 plotOutput("tempplot") #,
-                 # wellPanel(
-                 #     h4("Run R commands"),
-                 #     fluidRow(column(textInput(inputId = "consoleIn", label = "consoleIn", value = "getwd()"), width = 6),
-                 #              column(actionButton(inputId = "runLine", label = "runLine"), width = 6)),
-                 #     verbatimTextOutput("consoleOut"),
-                 #     verbatimTextOutput("reactOut")
-                 # )
+            list(wellPanel(
+                fluidRow(column(4, actionButton(inputId = "runModel", label = "Run model", width = '100%')),
+                         column(4, checkboxGroupInput(inputId = "selectPopn", label = "Select population to plot",
+                                                      choiceNames = list("Adults","Larvae"),
+                                                      choiceValues = list("M","L"),
+                                                      selected = "M")),
+                         conditionalPanel(condition = "input.runModel > 0",
+                                          column(4, downloadButton("downloadData", "Download results")))
+                )
+            ),
+            plotOutput("popnplot"),
+            plotOutput("compareyearplot") #,
+            # wellPanel(
+            #     h4("Run R commands"),
+            #     fluidRow(column(textInput(inputId = "consoleIn", label = "consoleIn", value = "getwd()"), width = 6),
+            #              column(actionButton(inputId = "runLine", label = "runLine"), width = 6)),
+            #     verbatimTextOutput("consoleOut"),
+            #     verbatimTextOutput("reactOut")
+            # )
 
             )
         )
@@ -111,22 +117,36 @@ server <- function(session, input, output) {
 
 
 
+    res <- eventReactive({ input$runModel | input$MTD }, {
 
-    res <- eventReactive(input$runModel, {
+
 
         validate(
             need(!is.na(input$M) & input$M > 0, "Enter a starting number of adult mosquitos > 0"),
-            need(input$M <= 2710200, "Starting number of adults must be < 2710200")
+            need(input$M <= 2710200, "Starting number of adults must be < 2710200"),
+            need(!is.na(input$MTD), "Enter a minimum development temperature")
         )
 
         mosqmod::runModel(temp_seq = temp_seq(),
                           burnin.dates = seq(input$runDates[1] - 365, input$runDates[1] - 1, 1),
                           run.dates = seq(input$runDates[1],
                                           input$runDates[2], 1),
-                          M = input$M)
-        })
+                          M = input$M,
+                          MTD = input$MTD)
 
     # server: popnplot --------------------------------------------------------
+    }, ignoreInit = TRUE)
+
+    # server: download results .csv -------------------------------------------
+    # Downloadable csv of selected dataset ----
+    output$downloadData <- downloadHandler(
+        filename = function() {
+            format(Sys.time(), "model_results_%Y%m%d_%H%M%S.csv")
+        },
+        content = function(file) {
+            write.csv(res()[,-1], file, row.names = FALSE)
+        }
+    )
     output$tempplot <- renderPlot({
         print(tail(temp_seq()))
 
@@ -142,12 +162,22 @@ server <- function(session, input, output) {
 
     })
 
+    # server: popnplot --------------------------------------------------------
     output$popnplot <- renderPlot({
         validate(
             need(!is.null(input$selectPopn), "Select checkbox for plotting adults, larvae or both")
         )
+        mosqmod::plot_popn(resdf = res(), selectPopn = input$selectPopn)
+    })
 
-        mosqmod::plotModOut(resdf = res(), selectPopn = input$selectPopn)
+
+    # server: compare years ---------------------------------------------------
+    output$compareyearplot <- renderPlot({
+        validate(
+            need(!is.null(input$selectPopn), "Select checkbox for plotting adults, larvae or both")
+        )
+
+        mosqmod::plot_popn_years(resdf = res(), selectPopn = input$selectPopn)
     })
 
     # server: run lines -------------------------------------------------------
