@@ -16,20 +16,18 @@ library(ggplot2)
 library(mosqmod)
 
 
-# Define UI
+# UI ----------------------------------------------------------------------
 ui <- fluidPage(
-
     # Application title
     titlePanel("MossieModel - dev"),
-
-    # Sidebar with a slider input for number of bins
     sidebarLayout(
+        # UI: sidebar -------------------------------------------------------------
         sidebarPanel(dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
                      numericInput(inputId = "M",label = "Starting adult mosquitos (M)", value = 100),
                      numericInput(inputId = "extend_days",label = "Project temperature by n days", value = 30),
                      numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783)
         ),
-        # Show a plot of the generated distribution
+        # UI: main panel ----------------------------------------------------------
         mainPanel(
             list(wellPanel(
                 fluidRow(column(4, actionButton(inputId = "runModel", label = "Run model", width = '100%')),
@@ -42,7 +40,7 @@ ui <- fluidPage(
                 )
             ),
             plotOutput("popnplot"),
-            plotOutput("compareyearplot") #,
+            plotOutput("compareyearplot")
             # wellPanel(
             #     h4("Run R commands"),
             #     fluidRow(column(textInput(inputId = "consoleIn", label = "consoleIn", value = "getwd()"), width = 6),
@@ -50,7 +48,6 @@ ui <- fluidPage(
             #     verbatimTextOutput("consoleOut"),
             #     verbatimTextOutput("reactOut")
             # )
-
             )
         )
     )
@@ -74,9 +71,8 @@ server <- function(session, input, output) {
     # format sequence (fill gaps, format dates etc. )
     temp_stored <- mosqmod::formatTempSeq(d = temp_stored)[c("Date", "Tmean", "calday", "source")]
 
-    print(tail(temp_stored))
 
-    # get projected temperatures from calendar day mean temperatures
+    # server: projected temperatures from calendar day means ------------------
     temp_seq <- reactive({
 
         # checks for input$extend_days
@@ -117,6 +113,8 @@ server <- function(session, input, output) {
 
 
 
+    # server: runModel() ------------------------------------------------------
+
     res <- eventReactive({ input$runModel | input$MTD }, {
 
 
@@ -134,11 +132,10 @@ server <- function(session, input, output) {
                           M = input$M,
                           MTD = input$MTD)
 
-    # server: popnplot --------------------------------------------------------
     }, ignoreInit = TRUE)
 
+
     # server: download results .csv -------------------------------------------
-    # Downloadable csv of selected dataset ----
     output$downloadData <- downloadHandler(
         filename = function() {
             format(Sys.time(), "model_results_%Y%m%d_%H%M%S.csv")
@@ -147,8 +144,9 @@ server <- function(session, input, output) {
             write.csv(res()[,-1], file, row.names = FALSE)
         }
     )
+
+    # server: tempplot --------------------------------------------------------
     output$tempplot <- renderPlot({
-        print(tail(temp_seq()))
 
         validate(
             need(input$runDates[1] >= min(temp_seq()$Date)+365,
