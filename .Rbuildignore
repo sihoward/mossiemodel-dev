@@ -6,3 +6,4 @@
 ^emails$
 ^\.Renviron$
 ^inst/app/rsconnect$
+^extras$
