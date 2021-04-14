@@ -7,9 +7,11 @@ plot_popn <- function(resdf,
   }
 
   # append last recorded temperature (removes gap when drawing geom_line)
-  last.recorded <- resdf[max(which(resdf$source != "projected")),]
-  last.recorded$source <- "projected"
-  resdf <- rbind(resdf, last.recorded)
+  if(any(resdf$source != "projected")){
+    last.recorded <- resdf[max(which(resdf$source != "projected")),]
+    last.recorded$source <- "projected"
+    resdf <- rbind(resdf, last.recorded)
+  }
 
   # stack selected columns
   d <- tidyr::pivot_longer(resdf, cols = all_of(selectPopn))
@@ -41,9 +43,11 @@ plot_popn_years <- function(resdf,
                        selectPopn = c("L", "L_1", "L_2", "L_3", "L_4", "L_5", "M")){
 
   # append last recorded temperature (removes gap when drawing geom_line)
-  last.recorded <- resdf[max(which(resdf$source != "projected")),]
-  last.recorded$source <- "projected"
-  resdf <- rbind(resdf, last.recorded)
+  if(any(resdf$source != "projected")){
+    last.recorded <- resdf[max(which(resdf$source != "projected")),]
+    last.recorded$source <- "projected"
+    resdf <- rbind(resdf, last.recorded)
+  }
 
   # stack selected columns
   d <- tidyr::pivot_longer(resdf, cols = all_of(selectPopn))
