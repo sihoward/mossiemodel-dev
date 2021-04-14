@@ -152,6 +152,8 @@ runModel <- function(# burn-in range
   modOut <- subset(modOut, time > (length(burnin.dates) * burnin.reps))
   # add run dates
   modOut$Date <- run.dates
+  # add extra columns from temp_seq
+  modOut <- dplyr::left_join(modOut, temp_seq)
 
   return(modOut)
 }
