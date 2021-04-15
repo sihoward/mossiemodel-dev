@@ -1,7 +1,4 @@
 
-
-
-
 # Description: ------------------------------------------------------------
 #
 # function to simulate mosquito populations as a function of temperature
@@ -21,17 +18,17 @@
 #' @param K_L larval carrying capacity (numbers/km^2)
 #' @param M_max max adult density
 #' @param MTD minimum temperature for mosquito development)
-#' @param L_1 instar densities (1-5)
+#' @param L_1 Initial instar densities (1-5)
 #' @param L_2 see above
 #' @param L_3 see above
 #' @param L_4 see above
 #' @param L_5 see above
-#' @param M adult density
+#' @param M Initial adult density
 #'
-#' @return 1
-#' @export 1
+#' @return
+#' @export
 #'
-#' @examples 1
+#' @examples
 
 mosqpopn <- function(temp_ts, # temperature time series
                      b,       # number of female eggs per clutch
@@ -113,6 +110,29 @@ mosqpopn <- function(temp_ts, # temperature time series
   return(out)
 }
 
+#' Run mosquito population model.
+#'
+#' @param burnin.dates Trim temperature time series to these dates for burn-in.
+#' @param burnin.reps Repeat burn-in temperature time series n times.
+#' @param run.dates Run temperature time series at these dates after burn-in.
+#' @param temp_seq temperature time series
+#' @param b number of female eggs per clutch
+#' @param alpha adult mortality rate (1/days)
+#' @param beta larval mortality rate (1/days)
+#' @param K_L larval carrying capacity (numbers/km^2)
+#' @param M_max max adult density
+#' @param MTD minimum temperature for mosquito development)
+#' @param L_1 Initial instar densities (1-5)
+#' @param L_2 see above
+#' @param L_3 see above
+#' @param L_4 see above
+#' @param L_5 see above
+#' @param M Initial adult density
+#'
+#' @return
+#' @export
+#'
+#' @examples
 runModel <- function(# burn-in range
   burnin.dates = seq(as.Date("2019-07-01"), as.Date("2020-06-30"), 1),
   burnin.reps = 100,

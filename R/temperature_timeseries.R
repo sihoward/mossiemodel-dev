@@ -2,6 +2,8 @@
 formatTempSeq <- function(d = read.csv("inst/temperature_data/Musselburgh_15752.csv",
                                        stringsAsFactors = FALSE,
                                        check.names = FALSE)){
+#' @importFrom rlang .data
+#' @export
 
   d <- dplyr::rename(d, Date = .data$Date.local., Tmax = .data$Tmax.C., Tmin = .data$Tmin.C.)
 
@@ -62,6 +64,18 @@ formatTempSeq <- function(d = read.csv("inst/temperature_data/Musselburgh_15752.
 
 append_TempSeq <- function(temp_stored = read.csv("inst/app/www/temp_data/Musselburgh_15752_2000-2021.csv",
                                                   stringsAsFactors = FALSE, na.strings = ""),
+#' Append temperature times series with latest temperature from NIWA's CliFlo database.
+#'
+#' @param temp_stored Stored temperatures to append.
+#' @param date_append Get updated temperatures after this date. Defaults to current system clock.
+#' @param request Make CliFlo request (default = TRUE).
+#' @param username CliFlo login username (see 'https://cliflo.niwa.co.nz')
+#' @param password CliFlo login password.
+#'
+#' @return
+#' @export
+#'
+#' @examples
                            date_append = as.Date(Sys.time()),
                            request = TRUE,
                            username = NULL, password = NULL){
@@ -103,6 +117,7 @@ append_TempSeq <- function(temp_stored = read.csv("inst/app/www/temp_data/Mussel
   return(temp_append)
 }
 
+#' @export
 project_TempSeq <- function(temp_seq = temp_seq,
                             extend_days = 30,
                             lookback_days = 90,
