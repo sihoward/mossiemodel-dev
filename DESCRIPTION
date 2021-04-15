@@ -1,6 +1,6 @@
 Package: mosqmod
 Title: Temperature-dependent mosquito population model
-Version: 0.0.0.9000
+Version: 0.1.0.0000
 Authors@R: 
     person(given = "Simon",
            family = "Howard",
@@ -8,8 +8,7 @@ Authors@R:
            email = "howards@landcareresearch.co.nz",
            comment = c(ORCID = "0000-0003-3179-9946"))
 Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to
-    pick a license
+License: file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
@@ -20,6 +19,7 @@ Imports:
     shiny,
     dplyr,
     ggplot2,
-    tidyr
+    tidyr,
+    rlang
 Suggests: 
     testthat

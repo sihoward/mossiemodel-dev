@@ -7,3 +7,5 @@
 ^\.Renviron$
 ^inst/app/rsconnect$
 ^extras$
+^sketches$
+^MossieModel - dev$
