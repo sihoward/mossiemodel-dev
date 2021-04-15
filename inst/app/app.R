@@ -122,7 +122,11 @@ server <- function(session, input, output) {
         validate(
             need(!is.na(input$M) & input$M > 0, "Enter a starting number of adult mosquitos > 0"),
             need(input$M <= 2710200, "Starting number of adults must be < 2710200"),
-            need(!is.na(input$MTD), "Enter a minimum development temperature")
+            need(!is.na(input$MTD), "Enter a minimum development temperature"),
+            need(input$runDates[1] >= min(temp_seq()$Date)+365,
+                     sprintf("Select a start date after %s", min(temp_seq()$Date)+364)),
+            need(grepl("07-01", format(input$runDates[1], "%m-%d")),
+                 sprintf("Select a 1st July start date after %s", min(temp_seq()$Date)+364))
         )
 
         mosqmod::runModel(temp_seq = temp_seq(),
