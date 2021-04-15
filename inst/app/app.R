@@ -40,7 +40,11 @@ ui <- fluidPage(
                 )
             ),
             plotOutput("popnplot"),
-            plotOutput("compareyearplot")
+            plotOutput("compareyearplot"),
+            sliderInput(inputId = "dateRange", label = "View date range",
+                        min = as.Date("2020-07-01"), max = as.Date("2021-06-30"),
+                        value = c(as.Date("2020-07-01"), as.Date("2021-06-30")))
+
             # wellPanel(
             #     h4("Run R commands"),
             #     fluidRow(column(textInput(inputId = "consoleIn", label = "consoleIn", value = "getwd()"), width = 6),
@@ -175,7 +179,20 @@ server <- function(session, input, output) {
             need(!is.null(input$selectPopn), "Select checkbox for plotting adults, larvae or both")
         )
 
-        mosqmod::plot_popn_years(resdf = res(), selectPopn = input$selectPopn)
+        gg <- mosqmod::plot_popn_years(resdf = res(), selectPopn = input$selectPopn)
+
+        minDate <- min(res()$Date)
+        maxDate <- minDate + 364
+
+        # browser()
+        if((input$dateRange[1] < minDate | input$dateRange[2] > maxDate)){
+            updateSliderInput(session, inputId = "dateRange",
+                              min = minDate, max = maxDate,
+                              value = c(minDate, maxDate),
+                              timeFormat = '%B %d')
+        }
+
+        gg + scale_x_date(limits = c(input$dateRange[1], input$dateRange[2]))
     })
 
     # server: run lines -------------------------------------------------------
