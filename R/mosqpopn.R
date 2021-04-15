@@ -224,9 +224,7 @@ runModel <- function(# burn-in range
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' mosqmod::runMosqModApp()
-#' }
+#' mosqmod::runMosqModApp(cliflo_requests = FALSE)
 
 runMosqModApp <- function(cliflo_requests = TRUE){
   cliflo_requests <<- cliflo_requests   # add to global environment
