@@ -183,6 +183,10 @@ runModel <- function(# burn-in range
 #' Runs shiny app locally using the 'app/app.R' file included in 'mosqmod'
 #' package (i.e. 'Program Files/R/R.X.X.X/library/mosqmod').
 #'
+#' @param cliflo_requests Make requests to CliFlo database to update
+#'   temperatures (default = TRUE). Set to FALSE to disable when working on
+#'   restricted networks for example.
+#'
 #' @return
 #' @export
 #'
@@ -191,7 +195,7 @@ runModel <- function(# burn-in range
 #' mosqmod::runMosqModApp()
 #' }
 
-runMosqModApp <- function(){
+runMosqModApp <- function(cliflo_requests = TRUE){
   shiny::runApp(appDir = system.file("app", package = "mosqmod"),
                 launch.browser = TRUE)
 }

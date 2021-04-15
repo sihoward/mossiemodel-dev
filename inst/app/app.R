@@ -15,6 +15,9 @@ library(ggplot2)
 # devtools::install_github(repo = "sihoward/mossiemodel-dev", ref = "master")
 library(mosqmod)
 
+# set cliflo_requests to TRUE if missing
+if(!exists("cliflo_requests")) cliflo_requests <- TRUE
+
 
 # UI ----------------------------------------------------------------------
 ui <- fluidPage(
@@ -64,6 +67,7 @@ server <- function(session, input, output) {
     # server: request CliFlo temperatures -------------------------------------
     temp_stored <- mosqmod::append_TempSeq(temp_stored = read.csv("www/temp_data/Musselburgh_15752_2000-2021.csv",
                                                                   stringsAsFactors = FALSE, na.strings = ""),
+                                           request = cliflo_requests,
                                            date_append = as.Date(Sys.Date()),
                                            username = Sys.getenv("cliflo_usrid"), password = Sys.getenv("cliflo_pwd"))
     # progress$inc(amount = 0.1)
