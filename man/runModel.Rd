@@ -62,3 +62,37 @@ runModel(
 \description{
 Run mosquito population model.
 }
+\examples{
+library(mosqmod)
+
+# load stored temperatures
+temperatures <- read.csv(system.file("app/www/temp_data/Musselburgh_15752_2000-2021.csv", package = "mosqmod"),
+                         stringsAsFactors = FALSE, na.strings = "")
+
+
+# append temperatures (requires 'cliflo_usrid' & 'cliflo_pwd' environment
+# variables to be set if not using request = FALSE)
+temp_seq <- mosqmod::append_TempSeq(temp_stored = temperatures, request = FALSE)
+
+# format sequence (fill gaps, format dates etc. )
+temp_seq <- formatTempSeq(d = temp_seq)
+
+# get projected temperatures from calendar day mean temperatures
+
+calendar_day_mean_temps <- read.csv(system.file("app/www/temp_data/calday_means.csv", package = "mosqmod"))
+
+temp_projected <- project_TempSeq(temp_seq = temp_seq, extend_days = 365*2,
+                                  lookback_days = 90,
+                                  calendar_day_mean_temps)
+
+# add projected temperatures
+temp_seq <- dplyr::bind_rows(temp_seq, temp_projected)
+
+# run model
+res <- runModel(temp_seq = temp_seq,
+                burnin.dates = seq(as.Date("2016-07-01"), as.Date("2017-06-30"), 1),
+                run.dates = seq(as.Date("2017-07-01"), max(temp_seq$Date), 1))
+
+# plot results
+mosqmod::plot_popn(resdf = res, include_temp = TRUE, selectPopn = "M")
+}

@@ -4,7 +4,12 @@
 \alias{runMosqModApp}
 \title{Run shiny app locally}
 \usage{
-runMosqModApp()
+runMosqModApp(cliflo_requests = TRUE)
+}
+\arguments{
+\item{cliflo_requests}{Make requests to CliFlo database to update
+temperatures (default = TRUE). Set to FALSE to disable when working on
+restricted networks for example.}
 }
 \value{
 

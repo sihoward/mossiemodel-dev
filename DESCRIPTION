@@ -20,6 +20,7 @@ Imports:
     dplyr,
     ggplot2,
     tidyr,
-    rlang
+    rlang,
+    readr
 Suggests: 
     testthat
