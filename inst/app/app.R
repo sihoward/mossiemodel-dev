@@ -60,6 +60,8 @@ server <- function(session, input, output) {
     # load stored temperatures
 
     # progress <- shiny::Progress$new(min = 0, max = 5)
+
+    # server: request CliFlo temperatures -------------------------------------
     temp_stored <- mosqmod::append_TempSeq(temp_stored = read.csv("www/temp_data/Musselburgh_15752_2000-2021.csv",
                                                                   stringsAsFactors = FALSE, na.strings = ""),
                                            date_append = as.Date(Sys.Date()),
