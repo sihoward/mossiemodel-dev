@@ -229,6 +229,7 @@ runModel <- function(# burn-in range
 #' }
 
 runMosqModApp <- function(cliflo_requests = TRUE){
+  cliflo_requests <<- cliflo_requests   # add to global environment
   shiny::runApp(appDir = system.file("app", package = "mosqmod"),
                 launch.browser = TRUE)
 }

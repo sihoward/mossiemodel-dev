@@ -16,7 +16,7 @@ library(ggplot2)
 library(mosqmod)
 
 # set cliflo_requests to TRUE if missing
-if(!exists("cliflo_requests")) cliflo_requests <- TRUE
+if(!exists("cliflo_requests", envir = globalenv())) cliflo_requests <- TRUE
 
 
 # UI ----------------------------------------------------------------------
