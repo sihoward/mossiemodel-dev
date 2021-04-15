@@ -178,5 +178,26 @@ runModel <- function(# burn-in range
 
 
 
+#' Run shiny app locally
+#'
+#' Runs shiny app locally using the 'app/app.R' file included in 'mosqmod'
+#' package (i.e. 'Program Files/R/R.X.X.X/library/mosqmod').
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' mosqmod::runMosqModApp()
+#' }
+
+runMosqModApp <- function(){
+  shiny::runApp(appDir = system.file("app", package = "mosqmod"),
+                launch.browser = TRUE)
+}
+
+
+
+
 
 
