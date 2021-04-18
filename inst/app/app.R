@@ -28,7 +28,9 @@ ui <- fluidPage(
         sidebarPanel(dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
                      conditionalPanel('false', numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100)),
                      numericInput(inputId = "extend_days",label = "Project temperature by n days", value = 30),
-                     numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783)
+                     numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783),
+                     wellPanel(dateRangeInput("burninDates", label = "Run model burn-in over date range", start = as.Date("2019-07-01"), end = as.Date("2020-06-30")),
+                               numericInput(inputId = "yrng", label = "set plot y scale maximum", value = 500))
         ),
         # UI: main panel ----------------------------------------------------------
         mainPanel(
@@ -138,7 +140,7 @@ server <- function(session, input, output) {
         )
 
         mosqmod::runModel(temp_seq = temp_seq(),
-                          burnin.dates = seq(input$runDates[1] - 365, input$runDates[1] - 1, 1),
+                          burnin.dates = seq(input$burninDates[1], input$burninDates[2], 1),
                           run.dates = seq(input$runDates[1],
                                           input$runDates[2], 1),
                           M = input$Mfloor, Mfloor = input$Mfloor,
@@ -177,7 +179,7 @@ server <- function(session, input, output) {
         validate(
             need(!is.null(input$selectPopn), "Select checkbox for plotting adults, larvae or both")
         )
-        mosqmod::plot_popn(resdf = res(), selectPopn = input$selectPopn)
+        mosqmod::plot_popn(resdf = res(), selectPopn = input$selectPopn) + ggplot2::coord_cartesian(ylim = c(0, input$yrng))
     })
 
 
