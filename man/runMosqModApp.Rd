@@ -19,7 +19,5 @@ Runs shiny app locally using the 'app/app.R' file included in 'mosqmod'
 package (i.e. 'Program Files/R/R.X.X.X/library/mosqmod').
 }
 \examples{
-\dontrun{
-mosqmod::runMosqModApp()
-}
+mosqmod::runMosqModApp(cliflo_requests = FALSE)
 }
