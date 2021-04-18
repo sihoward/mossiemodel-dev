@@ -34,12 +34,12 @@ formatTempSeq <- function(d){
   # - only replaces missing values
   # - keeps a record of interpolated points with 'interpolated' column
   d$interpolated <- is.na(d$Tmin)|is.na(d$Tmax)
-  Tmin.est <- stats::approx(y = d$Tmin, x = seq_len(nrow(d)),
-                     xout = seq_len(nrow(d)), na.rm = TRUE)$y
+  Tmin.est <- stats::approx(y = d$Tmin[!is.na(d$Tmin)], x = which(!is.na(d$Tmin)),
+                     xout = seq_len(nrow(d)))$y
   d$Tmin[is.na(d$Tmin)] <- Tmin.est[is.na(d$Tmin)]
 
-  Tmax.est <- stats::approx(y = d$Tmax, x = seq_len(nrow(d)),
-                     xout = seq_len(nrow(d)), na.rm = TRUE)$y
+  Tmax.est <- stats::approx(y = d$Tmax[!is.na(d$Tmax)], x = which(!is.na(d$Tmax)),
+                     xout = seq_len(nrow(d)))$y
   d$Tmax[is.na(d$Tmax)] <- Tmax.est[is.na(d$Tmax)]
 
   # check for remaining NAs
