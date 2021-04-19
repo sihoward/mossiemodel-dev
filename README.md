@@ -33,4 +33,5 @@ Users on networks with restrictions may have to edit the permissions file 'cacer
 * Manual upload of temperature time series
 * Usage tracking?
 
+* Drop M from UI
 
