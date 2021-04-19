@@ -39,7 +39,7 @@ plot_popn <- function(resdf,
     ggplot2::ggplot(d, ggplot2::aes(y = .data$value, x = .data$Date,
                                     color = .data$name, size = .data$Temperature)) +
     ggplot2::geom_line() +
-    ggplot2::scale_size_manual(breaks = c("recorded", "projected"), values = c(0.8,0.3))
+    ggplot2::scale_size_manual(breaks = c("recorded", "projected"), values = c(1.2,0.5))
 
   if(!include_temp){
     gg <- gg + ggplot2::labs(y = "Number per x")
@@ -102,7 +102,7 @@ plot_popn_years <- function(resdf,
     ggplot2::labs(y = "Number per x") +
     ggplot2::scale_x_date(date_labels = "%b") +
     ggplot2::scale_color_brewer(palette = "Dark2") +
-    ggplot2::scale_size_manual(breaks = c("recorded", "projected"), values = c(0.8,0.3))
+    ggplot2::scale_size_manual(breaks = c("recorded", "projected"), values = c(1.2,0.5))
 
 
   if(length(selectPopn) == 1){
