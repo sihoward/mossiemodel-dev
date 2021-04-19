@@ -31,6 +31,7 @@ ui <- fluidPage(
                      numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783),
                      wellPanel(dateRangeInput("burninDates", label = "Run model burn-in over date range",
                                               start = as.Date("2016-07-01"), end = as.Date("2017-06-30")),
+                               numericInput(inputId = "burnin.reps", label = "Repeat burnin sequence n times", value = 100),
                                numericInput(inputId = "yrng", label = "set plot y scale maximum", value = NULL))
         ),
         # UI: main panel ----------------------------------------------------------
@@ -145,8 +146,8 @@ server <- function(session, input, output) {
                           run.dates = seq(input$runDates[1],
                                           input$runDates[2], 1),
                           M = input$Mfloor, Mfloor = input$Mfloor,
-                          MTD = input$MTD)
-
+                          MTD = input$MTD,
+                          burnin.reps = input$burnin.reps)
     }, ignoreInit = TRUE)
 
 
