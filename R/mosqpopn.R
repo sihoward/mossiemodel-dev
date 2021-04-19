@@ -181,7 +181,7 @@ runModel <- function(# burn-in range
   M_max = 1000060,   # max adult density
   MTD = 7.783,
   L_1 = 0, L_2 = 0,  L_3 = 0, L_4 = 0, L_5 = 0,
-  M = 100){
+  M = 100, Mfloor = 100){
 
   # repeat burn-in temperatures and append with run dates
   temp_ts <- c(rep(temp_seq$Tmean[temp_seq$Date %in% burnin.dates], burnin.reps),
@@ -196,7 +196,8 @@ runModel <- function(# burn-in range
                               M_max = M_max,
                               MTD = MTD,
                               L_1 = L_1, L_2 = L_2,  L_3 = L_3, L_4 = L_4, L_5 = L_5,
-                              M = M)
+                              M = M,
+                              Mfloor = Mfloor)
   modOut <- data.frame(modOut)
   # add temperature time series
   modOut$Tmean <- c(NA, temp_ts)

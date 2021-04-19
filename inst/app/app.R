@@ -26,7 +26,7 @@ ui <- fluidPage(
     sidebarLayout(
         # UI: sidebar -------------------------------------------------------------
         sidebarPanel(dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
-                     numericInput(inputId = "M",label = "Starting adult mosquitos (M)", value = 100),
+                     numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100),
                      numericInput(inputId = "extend_days",label = "Project temperature by n days", value = 30),
                      numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783)
         ),
@@ -123,11 +123,9 @@ server <- function(session, input, output) {
 
     res <- eventReactive({ input$runModel | input$MTD }, {
 
-
-
         validate(
-            need(!is.na(input$M) & input$M > 0, "Enter a starting number of adult mosquitos > 0"),
-            need(input$M <= 2710200, "Starting number of adults must be < 2710200"),
+            need(!is.na(input$Mfloor) & input$Mfloor > 0, "Enter a starting number of adult mosquitos > 0"),
+            need(input$Mfloor <= 2710200, "Starting number of adults must be < 2710200"),
             need(!is.na(input$MTD), "Enter a minimum development temperature"),
             need(input$runDates[1] >= min(temp_seq()$Date)+365,
                      sprintf("Select a start date after %s", min(temp_seq()$Date)+364)),
@@ -139,7 +137,7 @@ server <- function(session, input, output) {
                           burnin.dates = seq(input$runDates[1] - 365, input$runDates[1] - 1, 1),
                           run.dates = seq(input$runDates[1],
                                           input$runDates[2], 1),
-                          M = input$M,
+                          M = input$Mfloor, Mfloor = input$Mfloor,
                           MTD = input$MTD)
 
     }, ignoreInit = TRUE)
