@@ -90,7 +90,7 @@ plot_popn_years <- function(resdf,
   d <- dplyr::mutate(dplyr::group_by(d, .data$Year),
                      Date = min(d$Date) + (.data$Date - min(.data$Date)))
   # make year discrete
-  d$Year <- factor(d$Year)
+  d$Year <- factor(d$Year, levels = sort(unique(d$Year), decreasing = TRUE))
   # create factor for recorded vs projected temperature estimates
   d$Temperature <- factor(ifelse(d$source %in% "projected", "projected", "recorded"),
                           levels = c("recorded", "projected"))
