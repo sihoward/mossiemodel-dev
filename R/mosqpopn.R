@@ -42,7 +42,8 @@ mosqpopn <- function(temp_ts, # temperature time series
                      L_3 = 0,
                      L_4 = 0,
                      L_5 = 0,
-                     M = 0){      # adult density
+                     M = 0,
+                     Mfloor = 100){      # adult density
 
   # mosquito population model as ordinary differential eqns -----------------
   #
@@ -88,7 +89,7 @@ mosqpopn <- function(temp_ts, # temperature time series
         print(sprintf("t = %0.2f; temp = %0.6f; d_T = %0.3f; g_T = %0.3f, L5 = %0.3f; M = %0.3f", t, temp, d_T, g_T, L_5, M))
       }
 
-      dM = if((M + (5 * d_T * L_5 - alpha * M)) < 0.01) -M + 0.01 else 5 * d_T * L_5 - alpha * M
+      dM = if((M + (5 * d_T * L_5 - alpha * M)) < Mfloor) Mfloor-M else 5 * d_T * L_5 - alpha * M
 
       return(list(c(dL, dM, L)))
     })
