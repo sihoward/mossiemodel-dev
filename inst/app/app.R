@@ -26,20 +26,20 @@ ui <- fluidPage(
     sidebarLayout(
         # UI: sidebar -------------------------------------------------------------
         sidebarPanel(dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
-                     numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100),
+                     conditionalPanel('false', numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100)),
                      numericInput(inputId = "extend_days",label = "Project temperature by n days", value = 30),
                      numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783)
         ),
         # UI: main panel ----------------------------------------------------------
         mainPanel(
             list(wellPanel(
-                fluidRow(column(4, actionButton(inputId = "runModel", label = "Run model", width = '100%')),
-                         column(4, checkboxGroupInput(inputId = "selectPopn", label = "Select population to plot",
+                fluidRow(column(6, actionButton(inputId = "runModel", label = "Run model", width = '100%')),
+                         column(6, checkboxGroupInput(inputId = "selectPopn", label = "Select population to plot",
                                                       choiceNames = list("Adults","Larvae"),
                                                       choiceValues = list("M","L"),
-                                                      selected = "M")),
-                         conditionalPanel(condition = "input.runModel > 0",
-                                          column(4, downloadButton("downloadData", "Download results")))
+                                                      selected = "M")) #,
+                         # conditionalPanel(condition = "input.runModel > 0",
+                         #                  column(4, downloadButton("downloadData", "Download results")))
                 )
             ),
             plotOutput("popnplot"),
