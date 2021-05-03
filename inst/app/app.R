@@ -65,11 +65,15 @@ server <- function(session, input, output) {
     # progress <- shiny::Progress$new(min = 0, max = 5)
 
     # server: request CliFlo temperatures -------------------------------------
+
+    showNotification(id = "cliflo_note", ui = "Making request to CliFlo climate server")
     temp_stored <- mosqmod::append_TempSeq(temp_stored = read.csv("www/temp_data/Musselburgh_15752_2000-2021.csv",
                                                                   stringsAsFactors = FALSE, na.strings = ""),
                                            request = cliflo_requests,
                                            date_append = as.Date(Sys.Date()),
                                            username = Sys.getenv("cliflo_usrid"), password = Sys.getenv("cliflo_pwd"))
+    showNotification("CliFlo request successful", duration = 1)
+    removeNotification(id = "cliflo_note")
     # progress$inc(amount = 0.1)
     # progress$close()
 
