@@ -83,7 +83,7 @@ temp_seq <- formatTempSeq(d = temp_seq)
 
 calendar_day_mean_temps <- getCalendarDayMeans(temp_seq)
 
-temp_projected <- project_TempSeq(temp_seq = temp_seq, extend_days = 365*2,
+temp_projected <- project_TempSeq(temp_seq = temp_seq, extend_days = 90,
                                   lookback_days = 90,
                                   calendar_day_mean_temps)
 
@@ -93,7 +93,7 @@ temp_seq <- dplyr::bind_rows(temp_seq, temp_projected)
 # run model
 res <- runModel(temp_seq = temp_seq,
                 burnin.dates = seq(as.Date("2016-07-01"), as.Date("2017-06-30"), 1),
-                run.dates = seq(as.Date("2017-07-01"), max(temp_seq$Date), 1))
+                run.dates = seq(as.Date("2020-07-01"), max(temp_seq$Date), 1))
 \dontrun{
 mosqmod::plot_popn(resdf = res, include_temp = TRUE, selectPopn = "M")
 }
