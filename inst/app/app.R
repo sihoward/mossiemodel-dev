@@ -30,11 +30,13 @@ ui <- fluidPage(
                      dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
                      numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100),
                      numericInput(inputId = "extend_days",label = "Project temperature by n days", value = 30),
+                     conditionalPanel('false',
                      numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783),
                      wellPanel(dateRangeInput("burninDates", label = "Run model burn-in over date range",
                                               start = as.Date("2016-07-01"), end = as.Date("2017-06-30")),
                                numericInput(inputId = "burnin.reps", label = "Repeat burnin sequence n times", value = 100),
                                numericInput(inputId = "yrng", label = "set plot y scale maximum", value = NULL))
+                     )
         ),
         # UI: main panel ----------------------------------------------------------
         mainPanel(
