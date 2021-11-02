@@ -30,6 +30,26 @@ if(is.null(params$res)) example("runModel", package = "mosqmod")
 
 ```{r format parameters, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
 
+# general info
+
+ClimateStation <- unique(res$Station[!is.na(res$Station)])
+ClimateStationID <- clifro::cf_find_station(ClimateStation, search = "name")[["agent"]]
+MossieModel_version <- as.character(packageVersion(pkg = "mosqmod"))
+TimeStamp <- Sys.time()
+SiteName <- c("Dunedin, Musselburgh Ews" = "Dunedin", "Nugget Point Aws" = "Catlins")[ClimateStation]
+
+general_info <- 
+  data.frame(Type = "General", 
+           Description = c("Site name", 
+                           "Climate station",
+                           "Model version",
+                           "Model timestamp"),
+           Value = c(SiteName, 
+                     paste0(ClimateStation, " (ID:", ClimateStationID, ")"),
+                     MossieModel_version,
+                     format(TimeStamp, "%Y-%m-%d %H:%M %Z")))
+general_info$Type[-1] <- NA
+
 # format model parameters
 model_params <- attr(res, "params")
 model_params <- data.frame(model_params)
@@ -97,7 +117,7 @@ temp_series$Type <- "Temperature time series"
 temp_series$Type[-1] <- NA
 
 # knit table
-knitr::kable(rbind(model_params[c("Type", "Description", "Value")], temp_series), row.names = FALSE)
+knitr::kable(rbind(general_info, model_params[c("Type", "Description", "Value")], temp_series), row.names = FALSE)
 ```
 
 ```{r population plot, dpi = 150, echo = FALSE, out.width = '90%', out.height = '40%'}
