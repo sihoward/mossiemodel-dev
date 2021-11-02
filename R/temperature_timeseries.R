@@ -91,7 +91,10 @@ append_TempSeq <- function(temp_stored,
     me <- clifro::cf_user(username = username,
                           password = password)
     my.dts <- clifro::cf_datatype(select_1 = 4, select_2 = 2, check_box = 1)
-    my.stations = clifro::cf_station(15752)       # 15752 - Musselburgh station ID
+    # find matching station ID from stored name
+    match.StationID <- cf_find_station(temp_stored$Station[1], search = "name")[["agent"]]
+    # my.stations = clifro::cf_station(15752)       # 15752 - Musselburgh station ID
+    my.stations <- clifro::cf_station(match.StationID)
 
     if(!all(temp_stored$Station %in% my.stations$name)){
       stop("Stored temperatures contain station IDs missing from CliFro request")

@@ -25,7 +25,8 @@ ui <- fluidPage(
     titlePanel("MossieModel - dev"),
     sidebarLayout(
         # UI: sidebar -------------------------------------------------------------
-        sidebarPanel(selectInput(inputId = "selectStation", label = "Select site", choices = "Dunedin city (Musselburgh)", selected = 1),
+        sidebarPanel(selectInput(inputId = "selectStation", label = "Select site",
+                                 choices = c("Dunedin city (Musselburgh)", "Catlins (Nugget Point)")),
                      dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
                      numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100),
                      numericInput(inputId = "extend_days",label = "Project temperature by n days", value = 30),
