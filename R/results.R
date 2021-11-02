@@ -72,6 +72,12 @@ plot_popn <- function(resdf,
       ggplot2::labs(y = NULL)
   }
 
+  # format x breaks and labels
+  gg <-
+    gg + ggplot2::scale_x_date(date_breaks = "6 months",
+                               date_minor_breaks = "1 month",
+                               label = function(x) format(x, "%b %Y"))
+
   return(gg)
 }
 
@@ -139,14 +145,15 @@ plot_popn_years <- function(resdf,
                                         size = .data$Temperature)) +
     ggplot2::geom_line() +
     ggplot2::labs(y = ylab_scaled) +
-    ggplot2::scale_x_date(date_labels = "%b") +
+    ggplot2::scale_x_date(breaks = seq(min(d$Date), by = "3 month", length.out = 5),
+                          date_minor_breaks = "1 month",
+                          date_label = "%b") +
     ggplot2::scale_color_brewer(palette = "Dark2") +
     ggplot2::scale_size_manual(breaks = c("recorded", "projected"), values = c(1.2,0.5))
 
-
-  if(length(selectPopn) == 1){
-    return(gg)
-  } else {
-    return(gg + ggplot2::facet_wrap(~name, scales = "free_y"))
+  if(length(selectPopn) > 1){
+    gg <- gg + ggplot2::facet_wrap(~name, scales = "free_y")
   }
+
+  return(gg)
 }

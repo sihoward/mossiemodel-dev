@@ -45,7 +45,9 @@ ui <- fluidPage(
                                                       choiceValues = list("M","L"),
                                                       selected = "M")),
                          conditionalPanel(condition = "input.runModel > 0",
-                                          column(4, downloadButton("downloadData", "Download results")))
+                                          column(4, downloadButton("downloadData", "Download results"))),
+                         conditionalPanel(condition = "input.runModel > 0",
+                                          column(4, downloadButton("downloadReport", "Download report")))
                 )
             ),
             plotOutput("popnplot"),
@@ -181,6 +183,30 @@ server <- function(session, input, output) {
         },
         content = function(file) {
             write.csv(res()[,-1], file, row.names = FALSE)
+        }
+    )
+
+    # server: download report pdf -------------------------------------------
+    output$downloadReport <- downloadHandler(
+        filename = function() {
+            format(Sys.time(), "model_results_%Y%m%d_%H%M%S.pdf")
+        },
+        content = function(file) {
+
+            # Copy the report file to a temporary directory before processing it, in
+            # case we don't have write permissions to the current working dir (which
+            # can happen when deployed).
+
+            tempReport <- file.path(tempdir(), "mm_report_template.Rmd")
+            file.copy(system.file("report/mm_report_template.Rmd", package = "mosqmod"), tempReport, overwrite = TRUE)
+
+            # Knit the document, passing in the `params` list, and eval it in a
+            # child of the global environment (this isolates the code in the document
+            # from the code in this app).
+            rmarkdown::render(tempReport, output_file = file,
+                              params = list(res = res()),
+                              output_format = "pdf_document",
+                              envir = new.env(parent = globalenv()))
         }
     )
 
