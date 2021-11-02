@@ -208,6 +208,14 @@ runModel <- function(# burn-in range
   # add extra columns from temp_seq
   modOut <- dplyr::left_join(modOut, temp_seq)
 
+  # add attributes to modOut
+  attr(modOut, "burnin.range") <- range(burnin.dates)
+  attr(modOut, "burnin.reps") <- burnin.reps
+  attr(modOut, "run.daterange") <- range(run.dates)
+  attr(modOut, "temp_seq") <- temp_seq
+  attr(modOut, "params") <- c(b = b, alpha = alpha, beta = beta, K_L = K_L, M_max = M_max, MTD = MTD,
+                              L_1 = L_1, L_2 = L_2, L_3 = L_3, L_4 = L_4, L_5 = L_5, M = M, Mfloor = Mfloor)
+
   return(modOut)
 }
 
