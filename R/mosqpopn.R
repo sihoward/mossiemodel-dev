@@ -129,6 +129,7 @@ mosqpopn <- function(temp_ts, # temperature time series
 #' @param L_4 see above
 #' @param L_5 see above
 #' @param M Initial adult density
+#' @param Mfloor Minimum adult density
 #'
 #' @return
 #' @export
@@ -163,10 +164,9 @@ mosqpopn <- function(temp_ts, # temperature time series
 #' res <- runModel(temp_seq = temp_seq,
 #'                 burnin.dates = seq(as.Date("2016-07-01"), as.Date("2017-06-30"), 1),
 #'                 run.dates = seq(as.Date("2017-07-01"), max(temp_seq$Date), 1))
-#'
-#' # plot results
+#' \dontrun{
 #' mosqmod::plot_popn(resdf = res, include_temp = TRUE, selectPopn = "M")
-
+#' }
 runModel <- function(# burn-in range
   burnin.dates = seq(as.Date("2019-07-01"), as.Date("2020-06-30"), 1),
   burnin.reps = 100,

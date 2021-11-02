@@ -20,7 +20,8 @@ runModel(
   L_3 = 0,
   L_4 = 0,
   L_5 = 0,
-  M = 100
+  M = 100,
+  Mfloor = 100
 )
 }
 \arguments{
@@ -55,6 +56,8 @@ runModel(
 \item{L_5}{see above}
 
 \item{M}{Initial adult density}
+
+\item{Mfloor}{Minimum adult density}
 }
 \value{
 
@@ -92,7 +95,7 @@ temp_seq <- dplyr::bind_rows(temp_seq, temp_projected)
 res <- runModel(temp_seq = temp_seq,
                 burnin.dates = seq(as.Date("2016-07-01"), as.Date("2017-06-30"), 1),
                 run.dates = seq(as.Date("2017-07-01"), max(temp_seq$Date), 1))
-
-# plot results
+\dontrun{
 mosqmod::plot_popn(resdf = res, include_temp = TRUE, selectPopn = "M")
+}
 }
