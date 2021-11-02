@@ -12,7 +12,7 @@ library(clifro)
 library(readr)
 library(ggplot2)
 # install mosqmod package from repo before pushing to shinyapps
-# devtools::install_github(repo = "sihoward/mossiemodel-dev", ref = "master")
+# devtools::install_github(repo = "sihoward/mossiemodel-dev", ref = "development")
 library(mosqmod)
 
 # set cliflo_requests to TRUE if missing
@@ -45,9 +45,14 @@ ui <- fluidPage(
                                                       choiceValues = list("M","L"),
                                                       selected = "M")),
                          conditionalPanel(condition = "input.runModel > 0",
-                                          column(4, downloadButton("downloadData", "Download results"))),
-                         conditionalPanel(condition = "input.runModel > 0",
-                                          column(4, downloadButton("downloadReport", "Download report")))
+                                          column(4,
+                                                 downloadButton("downloadData", "Download results"),
+                                                 downloadButton("downloadReport", "Download report"),
+                                                 selectInput("dowloadFormat",
+                                                             label = "Report format",
+                                                             choices = c("pdf", "word")))
+                         )
+
                 )
             ),
             plotOutput("popnplot"),
@@ -186,10 +191,13 @@ server <- function(session, input, output) {
         }
     )
 
-    # server: download report pdf -------------------------------------------
+    # server: download report -------------------------------------------
     output$downloadReport <- downloadHandler(
         filename = function() {
-            format(Sys.time(), "model_results_%Y%m%d_%H%M%S.pdf")
+            ext <- c(pdf = ".pdf", word = ".docx")[input$dowloadFormat]
+
+            paste0(format(Sys.time(), "model_results_%Y%m%d_%H%M%S"),
+                   ext)
         },
         content = function(file) {
 
@@ -203,9 +211,12 @@ server <- function(session, input, output) {
             # Knit the document, passing in the `params` list, and eval it in a
             # child of the global environment (this isolates the code in the document
             # from the code in this app).
+
+            output_format <- c(pdf = "pdf_document", word = "word_document")[input$dowloadFormat]
+
             rmarkdown::render(tempReport, output_file = file,
                               params = list(res = res()),
-                              output_format = "pdf_document",
+                              output_format = output_format,
                               envir = new.env(parent = globalenv()))
         }
     )
