@@ -116,18 +116,9 @@ server <- function(session, input, output) {
 
         ## get past temperature series ----
         dat <- temp_past()
-        # get dates starting the previous 10 years of past data
-        start_end_dates <- seq(max(dat$Date), by = "-10 year", length.out = 2)
-        # subset the 10 years of past temperatures
-        subdat <- subset(dat, Date >= start_end_dates[2])
-        # calculate calendar day means
-        calday_means <- aggregate(Tmean ~ calday, FUN = mean, data = subdat)
-        # replace leap day with mean for 28th Feb
-        calday_means$Tmean[calday_means$calday == "02-29"] <- calday_means$Tmean[calday_means$calday == "02-28"]
-        # rename Tmean column
-        calday_means$Tmean_10yr <- calday_means$Tmean
-        calday_means$Tmean <- NULL
 
+        # calculate calendar day means
+        calday_means <- mosqmod::getCalendarDayMeans(temp_hist = dat)
 
         # project temperature ahead using calendar day means ----
         if(input$extend_days > 0) {

@@ -29,3 +29,13 @@ append_TempSeq(
 \description{
 Append temperature times series with latest temperature from NIWA's CliFlo database.
 }
+\examples{
+# get stored data
+dat <- data.frame(mosqmod::saved_station_temps)
+# subset selected temperature series
+subdat <- subset(dat, Station == "Dunedin, Musselburgh Ews")
+
+temp_hist <- mosqmod::append_TempSeq(temp_stored = subdat,
+                                     request = FALSE,
+                                     date_append = as.Date(Sys.Date()))
+}
