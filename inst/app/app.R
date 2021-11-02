@@ -108,7 +108,7 @@ server <- function(session, input, output) {
         })
 
         # format sequence (fill gaps, format dates etc. )
-        mosqmod::formatTempSeq(d = subdat)[c("Date", "Tmean", "calday", "source")]
+        mosqmod::formatTempSeq(d = subdat)
 
     })
 
