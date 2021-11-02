@@ -1,0 +1,111 @@
+---
+title: "MossieModel Results Report"
+date: "`r paste('Report generated', format(Sys.Date(), '%B %e, %Y'))`"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+editor_options:
+  chunk_output_type: console
+params:
+  res: null
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(knitr.kable.NA = '')
+```
+
+```{r get results, message=FALSE, warning=FALSE, include=FALSE}
+# result object specified in params argument to rmarkdown::render()
+res <- params$res
+
+# if params argument to rmarkdown::render() is null run model example and use
+# resulting res object
+if(is.null(params$res)) example("runModel", package = "mosqmod")
+
+```
+
+# Model parameters
+
+```{r format parameters, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+
+# format model parameters
+model_params <- attr(res, "params")
+model_params <- data.frame(model_params)
+
+## store parameter descriptions
+param_descript <- 
+  c(b = "Number of female eggs per clutch", 
+    alpha = "Daily adult mortality rate", 
+    beta = "Daily larval mortality rate", 
+    K_L = "Larval carrying capacity (numbers/km^2)", 
+    M_max = "Maximum adult density (numbers/km^2)", 
+    MTD = "MTD", 
+    L_1 = "Starting density of first instar larvae", 
+    L_2 = "Starting density of second instar larvae",
+    L_3 = "Starting density of third instar larvae",
+    L_4 = "Starting density of fourth instar larvae",
+    L_5 = "Starting density of fifth instar larvae",
+    M = "Starting density of adults",
+    Mfloor = "Mfloor")
+
+## assign descriptions and format parameter table
+model_params$Description <- param_descript[row.names(model_params)]
+model_params$Value <- format(model_params$model_params, digits = 1, nsmall = 3, 
+                             scientific = FALSE, drop0trailing = TRUE)
+model_params$Type <- "Model parameters"
+model_params$Type[-1] <- NA
+
+# temperature series
+
+temp_seq <- attr(res, "temp_seq")
+
+## modelled date ranges
+daterange.run <- attr(res, "run.daterange")
+daterange.run.fmt <- paste(daterange.run, collapse = " to ")
+
+## burnin info
+daterange.burnin <- attr(res, "burnin.range")
+daterange.burnin.fmt <- paste(daterange.burnin, collapse = " to ")
+
+burnin.reps <- attr(res, "burnin.reps")
+burnin.reps.fmt <- paste(burnin.reps, "times")
+
+## time series info
+daterange.stored <- range(temp_seq$Date[temp_seq$source %in% "stored"])
+daterange.stored <- c(min(c(daterange.burnin, daterange.run)),
+                      max(daterange.stored))
+daterange.stored.fmt <- paste(daterange.stored, collapse = " to ")
+
+date.stored.retreived <- format(attr(mosqmod::saved_station_temps, "access.date"), "%Y-%m-%d")
+
+daterange.projected <- range(temp_seq$Date[temp_seq$source %in% "projected"])
+daterange.projected.fmt <- paste(daterange.projected, collapse = " to ")
+
+## format temperature series table
+temp_series <- 
+  data.frame(Description = c("Modelled date range", 
+                             "Model burn-in date range",
+                             "Burn-in time series repeated",
+                             "Stored temperature dates",
+                             "Projected temperature dates",
+                             "Stored temperature records retreived"), 
+             Value = c(daterange.run.fmt, daterange.burnin.fmt, burnin.reps.fmt,
+                       daterange.stored.fmt, daterange.projected.fmt, date.stored.retreived))
+temp_series$Type <- "Temperature time series"
+temp_series$Type[-1] <- NA
+
+# knit table
+knitr::kable(rbind(model_params[c("Type", "Description", "Value")], temp_series), row.names = FALSE)
+```
+
+```{r population plot, dpi = 150, echo = FALSE, out.width = '90%', out.height = '40%'}
+mosqmod::plot_popn(res, selectPopn = c("L", "M"))
+```
+
+```{r population overlay, dpi = 150, echo = FALSE, out.width = '90%', out.height = '40%'}
+mosqmod::plot_popn_years(res, selectPopn = c("L", "M"))
+```
+
+
