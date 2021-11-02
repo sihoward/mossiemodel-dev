@@ -173,13 +173,22 @@ server <- function(session, input, output) {
                  sprintf("Select a 1st July start date after %s", min(temp_seq()$Date)+364))
         )
 
-        mosqmod::runModel(temp_seq = temp_seq(),
+
+        showNotification(id = "model_update", ui = "Running model ...", duration = NULL)
+
+        model_results <- mosqmod::runModel(temp_seq = temp_seq(),
                           burnin.dates = seq(input$burninDates[1], input$burninDates[2], 1),
                           run.dates = seq(input$runDates[1],
                                           input$runDates[2], 1),
                           M = input$Mfloor, Mfloor = input$Mfloor,
                           MTD = input$MTD,
                           burnin.reps = input$burnin.reps)
+
+        showNotification("Model completed", duration = 1)
+        removeNotification(id = "model_update")
+
+        return(model_results)
+
     }, ignoreInit = TRUE)
 
 
