@@ -25,7 +25,8 @@ ui <- fluidPage(
     titlePanel("MossieModel - dev"),
     sidebarLayout(
         # UI: sidebar -------------------------------------------------------------
-        sidebarPanel(dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
+        sidebarPanel(selectInput(inputId = "selectStation", label = "Select site", choices = "Dunedin city (Musselburgh)", selected = 1),
+                     dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
                      numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100),
                      numericInput(inputId = "extend_days",label = "Project temperature by n days", value = 30),
                      numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783),
@@ -64,27 +65,42 @@ ui <- fluidPage(
 server <- function(session, input, output) {
 
 
-    # load stored temperatures
+    # server: temperature times series ----
 
-    # progress <- shiny::Progress$new(min = 0, max = 5)
+    ## load saved temperature series
+    saved_station_temps <- mosqmod::saved_station_temps
 
-    # server: request CliFlo temperatures -------------------------------------
+    ## select station from saved temperature series
+    temp_past <- reactive({
 
-    showNotification(id = "cliflo_note", ui = "Making request to CliFlo climate server")
-    temp_stored <- mosqmod::append_TempSeq(temp_stored = read.csv("www/temp_data/Musselburgh_15752_2000-2021.csv",
-                                                                  stringsAsFactors = FALSE, na.strings = ""),
-                                           request = cliflo_requests,
-                                           date_append = as.Date(Sys.Date()),
-                                           username = Sys.getenv("cliflo_usrid"), password = Sys.getenv("cliflo_pwd"))
-    showNotification("CliFlo request successful", duration = 1)
-    removeNotification(id = "cliflo_note")
-    # progress$inc(amount = 0.1)
-    # progress$close()
+        # convert saved temperature series to dataframe
+        dat <- data.frame(saved_station_temps)
+        # subset selected temperature series
+        subdat <- switch(input$selectStation,
+                         "Dunedin city (Musselburgh)" = subset(dat, Station == "Dunedin, Musselburgh Ews"),
+                         "Catlins (Nugget Point)" = subset(dat, Station == "Nugget Point Aws"))
+        subdat$source <- "stored"
 
+        ## request CliFlo temperatures ----
+        ## append selected temperature series (can fail if no rows retreived)
+        try({
+            showNotification(id = "cliflo_note", ui = "Making request to CliFlo climate server")
 
-    # format sequence (fill gaps, format dates etc. )
-    temp_stored <- mosqmod::formatTempSeq(d = temp_stored)[c("Date", "Tmean", "calday", "source")]
+            subdat <- mosqmod::append_TempSeq(# temp_stored = read.csv("www/temp_data/Musselburgh_15752_2000-2021.csv",
+                # stringsAsFactors = FALSE, na.strings = ""),
+                temp_stored = subdat,
+                request = cliflo_requests,
+                date_append = as.Date(Sys.Date()),
+                username = Sys.getenv("cliflo_usrid"), password = Sys.getenv("cliflo_pwd"))
 
+            showNotification("CliFlo request successful", duration = 1)
+            removeNotification(id = "cliflo_note")
+        })
+
+        # format sequence (fill gaps, format dates etc. )
+        mosqmod::formatTempSeq(d = subdat)[c("Date", "Tmean", "calday", "source")]
+
+    })
 
     # server: projected temperatures from calendar day means ------------------
     temp_seq <- reactive({
@@ -97,16 +113,31 @@ server <- function(session, input, output) {
             updateNumericInput(session, inputId = "extend_days", value = 0)
         }
 
-        # project temperature ahead using calendar day means
+        ## get past temperature series ----
+        dat <- temp_past()
+        # get dates starting the previous 10 years of past data
+        start_end_dates <- seq(max(dat$Date), by = "-10 year", length.out = 2)
+        # subset the 10 years of past temperatures
+        subdat <- subset(dat, Date >= start_end_dates[2])
+        # calculate calendar day means
+        calday_means <- aggregate(Tmean ~ calday, FUN = mean, data = subdat)
+        # replace leap day with mean for 28th Feb
+        calday_means$Tmean[calday_means$calday == "02-29"] <- calday_means$Tmean[calday_means$calday == "02-28"]
+        # rename Tmean column
+        calday_means$Tmean_10yr <- calday_means$Tmean
+        calday_means$Tmean <- NULL
+
+
+        # project temperature ahead using calendar day means ----
         if(input$extend_days > 0) {
             # add projected temperatures
             temp_projected <-
-                mosqmod::project_TempSeq(temp_seq = temp_stored,
+                mosqmod::project_TempSeq(temp_seq = temp_past(),
                                          extend_days = input$extend_days, lookback_days = 90,
-                                         calday_means = read.csv("www/temp_data/calday_means.csv"))
-            temp_seq <- dplyr::bind_rows(temp_stored, temp_projected)
+                                         calday_means = calday_means)
+            temp_seq <- dplyr::bind_rows(temp_past(), temp_projected)
         } else {
-            temp_seq <- temp_stored
+            temp_seq <- temp_past()
         }
 
         return(temp_seq)
