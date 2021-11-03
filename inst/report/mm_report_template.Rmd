@@ -5,6 +5,8 @@ output:
   word_document: default
   pdf_document: default
   html_document: default
+fontsize: 10pt
+geometry: margin=0.5in
 editor_options:
   chunk_output_type: console
 params:
