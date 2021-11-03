@@ -44,10 +44,12 @@ general_info <-
   data.frame(Type = "General", 
            Description = c("Site name", 
                            "Climate station",
+                           "Mosquito species",
                            "Model version",
                            "Model timestamp"),
            Value = c(SiteName, 
                      paste0(ClimateStation, " (ID:", ClimateStationID, ")"),
+                     "*Culex pervigilans*",
                      MossieModel_version,
                      format(TimeStamp, "%Y-%m-%d %H:%M %Z")))
 general_info$Type[-1] <- NA
@@ -63,7 +65,7 @@ param_descript <-
     beta = "Daily larval mortality rate", 
     K_L = "Larval carrying capacity (numbers/km^2)", 
     M_max = "Maximum adult density (numbers/km^2)", 
-    MTD = "MTD", 
+    MTD = "Minimum temperature for\nmosquito development", 
     L_1 = "Starting density of first instar larvae", 
     L_2 = "Starting density of second instar larvae",
     L_3 = "Starting density of third instar larvae",
@@ -77,7 +79,11 @@ model_params$Description <- param_descript[row.names(model_params)]
 model_params$Value <- format(model_params$model_params, digits = 1, nsmall = 3, 
                              scientific = FALSE, drop0trailing = TRUE)
 model_params$Type <- "Model parameters"
-model_params$Type[-1] <- NA
+
+# separate tables into front page and appendix
+model_params_front <- model_params[6,]
+model_params_appendix <- model_params[-6,]
+model_params_front$Type[-1] <- model_params_appendix$Type[-1] <- NA
 
 # temperature series
 
@@ -116,18 +122,25 @@ temp_series <-
              Value = c(daterange.run.fmt, daterange.burnin.fmt, burnin.reps.fmt,
                        daterange.stored.fmt, daterange.projected.fmt, date.stored.retreived))
 temp_series$Type <- "Temperature time series"
-temp_series$Type[-1] <- NA
+# separate tables into front page and appendix
+temp_series_front <- temp_series[c(1,5),]
+temp_series_appendix <- temp_series[-c(1,5),]
+temp_series_front$Type[-1] <- temp_series_appendix$Type[-1] <- NA
 
-# knit table
-knitr::kable(rbind(general_info, model_params[c("Type", "Description", "Value")], temp_series), row.names = FALSE)
+# knit front page table
+knitr::kable(rbind(general_info, model_params_front[c("Type", "Description", "Value")], temp_series_front), row.names = FALSE)
 ```
 
 ```{r population plot, dpi = 150, echo = FALSE, out.width = '90%', out.height = '40%'}
-mosqmod::plot_popn(res, selectPopn = c("L", "M"))
+mosqmod::plot_popn(res, selectPopn = c("M")) + ggplot2::theme(text = ggplot2::element_text(size = 10), line = ggplot2::element_line(size = 0.8))
 ```
 
 ```{r population overlay, dpi = 150, echo = FALSE, out.width = '90%', out.height = '40%'}
-mosqmod::plot_popn_years(res, selectPopn = c("L", "M"))
+mosqmod::plot_popn_years(res, selectPopn = c("L", "M")) + ggplot2::theme(text = ggplot2::element_text(size = 10), line = ggplot2::element_line(size = 0.8))
 ```
 
+```{r appendix table, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+# knit appendix table
+knitr::kable(rbind(model_params_appendix[c("Type", "Description", "Value")], temp_series_appendix), row.names = FALSE)
+```
 
