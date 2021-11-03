@@ -20,56 +20,67 @@ if(!exists("cliflo_requests", envir = globalenv())) cliflo_requests <- TRUE
 
 
 # UI ----------------------------------------------------------------------
-ui <- fluidPage(
-    # Application title
-    titlePanel("MossieModel - dev"),
-    sidebarLayout(
-        # UI: sidebar -------------------------------------------------------------
-        sidebarPanel(selectInput(inputId = "selectStation", label = "Select site",
-                                 choices = c("Dunedin city (Musselburgh)", "Catlins (Nugget Point)")),
-                     dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
-                     numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100),
-                     numericInput(inputId = "extend_days",label = "Project temperature by n days", value = 30),
-                     conditionalPanel('false',
-                     numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783),
-                     wellPanel(dateRangeInput("burninDates", label = "Run model burn-in over date range",
-                                              start = as.Date("2016-07-01"), end = as.Date("2017-06-30")),
-                               numericInput(inputId = "burnin.reps", label = "Repeat burnin sequence n times", value = 100),
-                               numericInput(inputId = "yrng", label = "set plot y scale maximum", value = NULL))
-                     )
-        ),
-        # UI: main panel ----------------------------------------------------------
-        mainPanel(
-            list(wellPanel(
-                fluidRow(column(4, actionButton(inputId = "runModel", label = "Run model", width = '100%')),
-                         column(4, checkboxGroupInput(inputId = "selectPopn", label = "Select population to plot",
-                                                      choiceNames = list("Adults","Larvae"),
-                                                      choiceValues = list("M","L"),
-                                                      selected = "M")),
-                         conditionalPanel(condition = "input.runModel > 0",
-                                          column(4,
-                                                 downloadButton("downloadData", "Download results"),
-                                                 downloadButton("downloadReport", "Download report"),
-                                                 selectInput("dowloadFormat",
-                                                             label = "Report format",
-                                                             choices = c("pdf", "word")))
-                         )
 
-                )
-            ),
-            plotOutput("popnplot"),
-            plotOutput("compareyearplot")
-            # wellPanel(
-            #     h4("Run R commands"),
-            #     fluidRow(column(textInput(inputId = "consoleIn", label = "consoleIn", value = "getwd()"), width = 6),
-            #              column(actionButton(inputId = "runLine", label = "runLine"), width = 6)),
-            #     verbatimTextOutput("consoleOut"),
-            #     verbatimTextOutput("reactOut")
-            # )
-            )
+## UI: sidebar ----
+ui.sidebar <-
+    list(selectInput(inputId = "selectStation", label = "Select site",
+                     choices = c("Dunedin city (Musselburgh)", "Catlins (Nugget Point)")),
+         dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
+         numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100),
+         numericInput(inputId = "extend_days",label = "Project temperature by n days", value = 30),
+         conditionalPanel('false',
+                          numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783),
+                          wellPanel(dateRangeInput("burninDates", label = "Run model burn-in over date range",
+                                                   start = as.Date("2016-07-01"), end = as.Date("2017-06-30")),
+                                    numericInput(inputId = "burnin.reps", label = "Repeat burnin sequence n times", value = 100),
+                                    numericInput(inputId = "yrng", label = "set plot y scale maximum", value = NULL)))
+         )
+
+# UI: main panel ----
+ui.main <-
+    list(wellPanel(
+        fluidRow(column(4, actionButton(inputId = "runModel", label = "Run model", width = '100%')),
+                 column(4, checkboxGroupInput(inputId = "selectPopn", label = "Select population to plot",
+                                              choiceNames = list("Adults","Larvae"),
+                                              choiceValues = list("M","L"),
+                                              selected = "M")),
+                 conditionalPanel(condition = "input.runModel > 0",
+                                  column(4,
+                                         downloadButton("downloadData", "Download results"),
+                                         downloadButton("downloadReport", "Download report"),
+                                         selectInput("dowloadFormat",
+                                                     label = "Report format",
+                                                     choices = c("pdf", "word")))
+                 )
+
         )
+    ),
+    plotOutput("popnplot"),
+    plotOutput("compareyearplot")
+    # wellPanel(
+    #     h4("Run R commands"),
+    #     fluidRow(column(textInput(inputId = "consoleIn", label = "consoleIn", value = "getwd()"), width = 6),
+    #              column(actionButton(inputId = "runLine", label = "runLine"), width = 6)),
+    #     verbatimTextOutput("consoleOut"),
+    #     verbatimTextOutput("reactOut")
+    # )
     )
-)
+
+ui <-
+    fluidPage(title = "MossieModel",
+              # Application title
+              titlePanel("MossieModel"),
+              fluidRow(
+                  column(wellPanel(ui.sidebar),
+                         h6(paste0("Version ", packageVersion("mosqmod"), " (", packageDate("mosqmod"), ")")),
+                         h6("Developed by Manaaki Whenua - Landcare Research."),
+                         # h6("email: gormleya@landcareresearch.co.nz")
+                         h6("email: ", tags$a(href = "https://www.landcareresearch.co.nz/about-us/our-people/simon-howard", target="_blank", "Simon Howard"), "or",
+                            tags$a(href = "https://www.landcareresearch.co.nz/about-us/our-people/chris-niebuhr", target="_blank", "Chris Niebuhr")),
+                         width = 3),
+                  column(ui.main, width = 9)
+              )
+    )
 
 # Define server logic required to draw a histogram
 server <- function(session, input, output) {
