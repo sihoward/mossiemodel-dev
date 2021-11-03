@@ -45,7 +45,9 @@ plot_popn <- function(resdf,
   d$value[popnRows] <- d$value[popnRows] / yscale[ind]
   ## scale label
   if(yscale[ind] > 1){
-    ylab_scaled <- paste0("Population size\n(", format(yscale[ind], scientific = FALSE), "s per square km)")
+    ylab_scaled <- paste0("Population size\n(",
+                          format(yscale[ind], scientific = FALSE, big.mark = ","),
+                          "s per square km)")
   } else {
     ylab_scaled <- paste0("Population size\n(number per square km)")
   }
@@ -134,7 +136,9 @@ plot_popn_years <- function(resdf,
   d$value <- d$value / yscale[ind]
   ## scale label
   if(yscale[ind] > 1){
-    ylab_scaled <- paste0("Population size\n(", format(yscale[ind], scientific = FALSE), "s per square km)")
+    ylab_scaled <- paste0("Population size\n(",
+                          format(yscale[ind], scientific = FALSE, big.mark = ","),
+                          "s per square km)")
   } else {
     ylab_scaled <- paste0("Population size\n(number per square km)")
   }
