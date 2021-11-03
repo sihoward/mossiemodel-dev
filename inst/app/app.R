@@ -48,9 +48,11 @@ ui.main <-
                                   column(4,
                                          downloadButton("downloadData", "Download results"),
                                          downloadButton("downloadReport", "Download report"),
+                                         conditionalPanel('false',
                                          selectInput("dowloadFormat",
                                                      label = "Report format",
-                                                     choices = c("pdf", "word")))
+                                                     choices = c("pdf", "word")[1]))
+                                  )
                  )
 
         )
