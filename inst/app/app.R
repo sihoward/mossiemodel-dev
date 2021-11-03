@@ -59,13 +59,6 @@ ui.main <-
     ),
     plotOutput("popnplot"),
     plotOutput("compareyearplot")
-    # wellPanel(
-    #     h4("Run R commands"),
-    #     fluidRow(column(textInput(inputId = "consoleIn", label = "consoleIn", value = "getwd()"), width = 6),
-    #              column(actionButton(inputId = "runLine", label = "runLine"), width = 6)),
-    #     verbatimTextOutput("consoleOut"),
-    #     verbatimTextOutput("reactOut")
-    # )
     )
 
 ui <-
