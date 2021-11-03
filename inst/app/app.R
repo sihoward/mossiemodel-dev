@@ -28,6 +28,7 @@ ui.sidebar <-
          dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
          numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100),
          numericInput(inputId = "extend_days",label = "Project temperature by n days", value = 30),
+         actionButton(inputId = "runModel", label = "Run model", width = '100%'),
          conditionalPanel('false',
                           numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783),
                           wellPanel(dateRangeInput("burninDates", label = "Run model burn-in over date range",
@@ -38,8 +39,8 @@ ui.sidebar <-
 
 ## UI: main panel ----
 ui.main <-
-    list(wellPanel(
-        fluidRow(column(4, actionButton(inputId = "runModel", label = "Run model", width = '100%')),
+    list(# wellPanel(
+        fluidRow(# column(4, actionButton(inputId = "runModel", label = "Run model", width = '100%')),
                  column(4, conditionalPanel('false', checkboxGroupInput(inputId = "selectPopn", label = "Select population to plot",
                                               choiceNames = list("Adults","Larvae")[1],
                                               choiceValues = list("M","L")[1],
@@ -55,7 +56,7 @@ ui.main <-
                                   )
                  )
 
-        )
+        # )
     ),
     plotOutput("popnplot"),
     plotOutput("compareyearplot")
