@@ -64,12 +64,12 @@ ui.main <-
 ui <-
     fluidPage(title = "MossieModel",
               # Application title
-              titlePanel("MossieModel"),
+              fluidRow(img(src = "MW_LR_Landscape_lge_blk.png", width = '200px', style="float:right;width:200px"),
+                       h1("MossieModel"), style = "padding-left:35px; padding-right:35px;"),
               fluidRow(
                   column(wellPanel(ui.sidebar),
                          h6(paste0("Version ", packageVersion("mosqmod"), " (", packageDate("mosqmod"), ")")),
                          h6("Developed by Manaaki Whenua - Landcare Research."),
-                         # h6("email: gormleya@landcareresearch.co.nz")
                          h6("email: ", tags$a(href = "https://www.landcareresearch.co.nz/about-us/our-people/simon-howard", target="_blank", "Simon Howard"), "or",
                             tags$a(href = "https://www.landcareresearch.co.nz/about-us/our-people/chris-niebuhr", target="_blank", "Chris Niebuhr")),
                          width = 3),
