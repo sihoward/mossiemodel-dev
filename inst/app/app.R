@@ -36,14 +36,14 @@ ui.sidebar <-
                                     numericInput(inputId = "yrng", label = "set plot y scale maximum", value = NULL)))
          )
 
-# UI: main panel ----
+## UI: main panel ----
 ui.main <-
     list(wellPanel(
         fluidRow(column(4, actionButton(inputId = "runModel", label = "Run model", width = '100%')),
-                 column(4, checkboxGroupInput(inputId = "selectPopn", label = "Select population to plot",
-                                              choiceNames = list("Adults","Larvae"),
-                                              choiceValues = list("M","L"),
-                                              selected = "M")),
+                 column(4, conditionalPanel('false', checkboxGroupInput(inputId = "selectPopn", label = "Select population to plot",
+                                              choiceNames = list("Adults","Larvae")[1],
+                                              choiceValues = list("M","L")[1],
+                                              selected = "M"))),
                  conditionalPanel(condition = "input.runModel > 0",
                                   column(4,
                                          downloadButton("downloadData", "Download results"),
