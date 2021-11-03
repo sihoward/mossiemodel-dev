@@ -71,6 +71,14 @@ formatTempSeq <- function(d){
 #' @export
 #'
 #' @examples
+#' # get stored data
+#' dat <- data.frame(mosqmod::saved_station_temps)
+#' # subset selected temperature series
+#' subdat <- subset(dat, Station == "Dunedin, Musselburgh Ews")
+#'
+#' temp_hist <- mosqmod::append_TempSeq(temp_stored = subdat,
+#'                                      request = FALSE,
+#'                                      date_append = as.Date(Sys.Date()))
 append_TempSeq <- function(temp_stored,
                            date_append = as.Date(Sys.time()),
                            request = TRUE,
@@ -91,7 +99,10 @@ append_TempSeq <- function(temp_stored,
     me <- clifro::cf_user(username = username,
                           password = password)
     my.dts <- clifro::cf_datatype(select_1 = 4, select_2 = 2, check_box = 1)
-    my.stations = clifro::cf_station(15752)       # 15752 - Musselburgh station ID
+    # find matching station ID from stored name
+    match.StationID <- cf_find_station(temp_stored$Station[1], search = "name")[["agent"]]
+    # my.stations = clifro::cf_station(15752)       # 15752 - Musselburgh station ID
+    my.stations <- clifro::cf_station(match.StationID)
 
     if(!all(temp_stored$Station %in% my.stations$name)){
       stop("Stored temperatures contain station IDs missing from CliFro request")
@@ -135,14 +146,76 @@ project_TempSeq <- function(temp_seq = temp_seq,
   # - average difference from calendar day mean for last recorded n days
   # - difference to calendar day mean
   temp_lookback <- utils::tail(temp_seq, lookback_days)
-  temp_delta <- mean(temp_lookback$Tmean - temp_lookback$Tmean_10yr)
+  temp_delta <- mean(temp_lookback$Tmean - temp_lookback$Tmean_calday)
 
   message(sprintf("%s-day difference in mean and mean calendar day temperatures = %0.3f degreesC", lookback_days, temp_delta))
 
-  temp_proj$Tmean <- temp_proj$Tmean_10yr + temp_delta
+  temp_proj$Tmean <- temp_proj$Tmean_calday + temp_delta
 
   return(temp_proj)
 }
+
+#' Calculate calendar day mean temperatures from historical series
+#'
+#' @param temp_hist Temperature time series formatted using
+#'   mosqmod::formatTempSeq.
+#' @param lookback Subset the historical time series starting at a past date.
+#'   Must match the format for the 'by' argument in \code{\link{seq.Date}}.
+#' @param series_ending Subset the historical time series ending date. Must be a
+#'   valid \code{\link{Dates}} object. When set to NULL (default) the most
+#'   recent date in the temperature time series is used.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' ## get past temperature series from append_TempSeq example
+#' example("append_TempSeq")
+#' temp_hist <- mosqmod::formatTempSeq(temp_hist)
+#' # using default - 10 years from most recent temperature
+#' getCalendarDayMeans(temp_hist = temp_hist)
+#' \dontrun{
+#' # customised - 5 years from end-2015
+#' getCalendarDayMeans(temp_hist = temp_hist, lookback = "-5 year", series_ending = as.Date("2015-12-31"))
+#' }
+getCalendarDayMeans <-
+  function(temp_hist = temp_hist,
+           lookback = "-10 year",
+           series_ending = NULL){
+
+  # use last date in temp series if no series_ending date given
+  if(is.null(series_ending)){
+    series_ending <- max(temp_hist$Date)
+  }
+
+  # get dates starting the specified range
+  start_end_dates <- seq(series_ending, by = lookback, length.out = 2)
+
+  # check supplied historical date range matches period to average over
+  if(min(temp_hist$Date) > start_end_dates[2]){
+    stop("Historical temperatures start after date range for calendar dat averages")
+  }
+
+  # subset the 10 years of past temperatures
+  subdat <- subset(temp_hist, Date >= start_end_dates[2])
+
+  # calculate calendar day means
+  calday_means <- aggregate(Tmean ~ calday, FUN = mean, data = subdat)
+
+  # rename Tmean column
+  calday_means$Tmean_calday <- calday_means$Tmean
+  calday_means$Tmean <- NULL
+
+  # replace leap day with mean for 28th Feb
+  calday_means$Tmean_calday[calday_means$calday == "02-29"] <-
+    calday_means$Tmean_calday[calday_means$calday == "02-28"]
+
+  attr(calday_means, "start_end_dates") <- start_end_dates
+
+  return(calday_means)
+}
+
+
 
 
 

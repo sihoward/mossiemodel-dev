@@ -9,8 +9,6 @@
 #' @importFrom rlang .data
 #' @return
 #' @export
-#'
-#' @examples
 plot_popn <- function(resdf,
                       selectPopn = c("L", "L_1", "L_2", "L_3", "L_4", "L_5", "M"),
                       include_temp = TRUE){
@@ -34,21 +32,51 @@ plot_popn <- function(resdf,
   d$Temperature <- factor(ifelse(d$source %in% "projected", "projected", "recorded"),
                           levels = c("recorded", "projected"))
 
+  # rescale y-axis values for population sizes
+  ## rows with population sizes
+  popnRows <- !d$name %in% "Tmean"
+  ## get max value
+  maxval <- max(d$value[popnRows])
+  ## potential y scale denominators
+  yscale <- c(1, 100,1000,10000, 100000, 1000000, 10000000)
+  ## pick denominator closest to population sizes
+  ind <- (maxval - yscale > 0) & (maxval - yscale) == min(maxval - yscale[maxval - yscale > 0])
+  ## divide values by denominator
+  d$value[popnRows] <- d$value[popnRows] / yscale[ind]
+  ## scale label
+  if(yscale[ind] > 1){
+    ylab_scaled <- paste0("Population size\n(", format(yscale[ind], scientific = FALSE), "s per square km)")
+  } else {
+    ylab_scaled <- paste0("Population size\n(number per square km)")
+  }
+
 
   gg <-
     ggplot2::ggplot(d, ggplot2::aes(y = .data$value, x = .data$Date,
                                     color = .data$name, size = .data$Temperature)) +
     ggplot2::geom_line() +
-    ggplot2::scale_size_manual(breaks = c("recorded", "projected"), values = c(1.2,0.5))
+    ggplot2::scale_color_discrete(name = "Population",
+                         labels = function(x) c(L = "Larvae", M = "Adults", Tmean = "Temperature")[x],
+                         guide = ggplot2::guide_legend(order = 1)) +
+    ggplot2::scale_size_manual(breaks = c("recorded", "projected"), values = c(1.2,0.5),
+                               guide = ggplot2::guide_legend(order = 2))
+
 
   if(!include_temp){
-    gg <- gg + ggplot2::labs(y = "Number per x")
+    gg <- gg + ggplot2::labs(y = ylab_scaled)
   } else {
     gg <- gg + ggplot2::facet_grid(name == "Tmean" ~ . , scale = "free_y",
-                                   labeller = ggplot2::as_labeller(c('TRUE' = "Temperature", 'FALSE' = "Population size")),
+                                   labeller = ggplot2::as_labeller(c('TRUE' = "Temperature\n(degrees C)",
+                                                                     'FALSE' = ylab_scaled)),
                                    switch = "y") +
       ggplot2::labs(y = NULL)
   }
+
+  # format x breaks and labels
+  gg <-
+    gg + ggplot2::scale_x_date(date_breaks = "6 months",
+                               date_minor_breaks = "1 month",
+                               label = function(x) format(x, "%b %Y"))
 
   return(gg)
 }
@@ -95,19 +123,37 @@ plot_popn_years <- function(resdf,
   d$Temperature <- factor(ifelse(d$source %in% "projected", "projected", "recorded"),
                           levels = c("recorded", "projected"))
 
+  # rescale y-axis values for population sizes
+  ## get max value
+  maxval <- max(d$value)
+  ## potential y scale denominators
+  yscale <- c(1, 100,1000,10000, 100000, 1000000, 10000000)
+  ## pick denominator closest to population sizes
+  ind <- (maxval - yscale > 0) & (maxval - yscale) == min(maxval - yscale[maxval - yscale > 0])
+  ## divide values by denominator
+  d$value <- d$value / yscale[ind]
+  ## scale label
+  if(yscale[ind] > 1){
+    ylab_scaled <- paste0("Population size\n(", format(yscale[ind], scientific = FALSE), "s per square km)")
+  } else {
+    ylab_scaled <- paste0("Population size\n(number per square km)")
+  }
+
+
   gg <- ggplot2::ggplot(d, ggplot2::aes(y = .data$value, x = .data$Date,
                                         color = .data$Year, group = .data$Year,
                                         size = .data$Temperature)) +
     ggplot2::geom_line() +
-    ggplot2::labs(y = "Number per x") +
-    ggplot2::scale_x_date(date_labels = "%b") +
+    ggplot2::labs(y = ylab_scaled) +
+    ggplot2::scale_x_date(breaks = seq(min(d$Date), by = "3 month", length.out = 5),
+                          date_minor_breaks = "1 month",
+                          date_label = "%b") +
     ggplot2::scale_color_brewer(palette = "Dark2") +
     ggplot2::scale_size_manual(breaks = c("recorded", "projected"), values = c(1.2,0.5))
 
-
-  if(length(selectPopn) == 1){
-    return(gg)
-  } else {
-    return(gg + ggplot2::facet_wrap(~name, scales = "free_y"))
+  if(length(selectPopn) > 1){
+    gg <- gg + ggplot2::facet_wrap(~name, scales = "free_y")
   }
+
+  return(gg)
 }

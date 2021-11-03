@@ -129,6 +129,7 @@ mosqpopn <- function(temp_ts, # temperature time series
 #' @param L_4 see above
 #' @param L_5 see above
 #' @param M Initial adult density
+#' @param Mfloor Minimum adult density
 #'
 #' @return
 #' @export
@@ -137,9 +138,8 @@ mosqpopn <- function(temp_ts, # temperature time series
 #' library(mosqmod)
 #'
 #' # load stored temperatures
-#' temperatures <- read.csv(system.file("app/www/temp_data/Musselburgh_15752_2000-2021.csv", package = "mosqmod"),
-#'                          stringsAsFactors = FALSE, na.strings = "")
-#'
+#' temperatures <- data.frame(mosqmod::saved_station_temps)
+#' temperatures <- subset(temperatures, Station == "Dunedin, Musselburgh Ews")
 #'
 #' # append temperatures (requires 'cliflo_usrid' & 'cliflo_pwd' environment
 #' # variables to be set if not using request = FALSE)
@@ -150,9 +150,9 @@ mosqpopn <- function(temp_ts, # temperature time series
 #'
 #' # get projected temperatures from calendar day mean temperatures
 #'
-#' calendar_day_mean_temps <- read.csv(system.file("app/www/temp_data/calday_means.csv", package = "mosqmod"))
+#' calendar_day_mean_temps <- getCalendarDayMeans(temp_seq)
 #'
-#' temp_projected <- project_TempSeq(temp_seq = temp_seq, extend_days = 365*2,
+#' temp_projected <- project_TempSeq(temp_seq = temp_seq, extend_days = 90,
 #'                                   lookback_days = 90,
 #'                                   calendar_day_mean_temps)
 #'
@@ -162,11 +162,10 @@ mosqpopn <- function(temp_ts, # temperature time series
 #' # run model
 #' res <- runModel(temp_seq = temp_seq,
 #'                 burnin.dates = seq(as.Date("2016-07-01"), as.Date("2017-06-30"), 1),
-#'                 run.dates = seq(as.Date("2017-07-01"), max(temp_seq$Date), 1))
-#'
-#' # plot results
+#'                 run.dates = seq(as.Date("2020-07-01"), max(temp_seq$Date), 1))
+#' \dontrun{
 #' mosqmod::plot_popn(resdf = res, include_temp = TRUE, selectPopn = "M")
-
+#' }
 runModel <- function(# burn-in range
   burnin.dates = seq(as.Date("2019-07-01"), as.Date("2020-06-30"), 1),
   burnin.reps = 100,
@@ -207,6 +206,14 @@ runModel <- function(# burn-in range
   modOut$Date <- run.dates
   # add extra columns from temp_seq
   modOut <- dplyr::left_join(modOut, temp_seq)
+
+  # add attributes to modOut
+  attr(modOut, "burnin.range") <- range(burnin.dates)
+  attr(modOut, "burnin.reps") <- burnin.reps
+  attr(modOut, "run.daterange") <- range(run.dates)
+  attr(modOut, "temp_seq") <- temp_seq
+  attr(modOut, "params") <- c(b = b, alpha = alpha, beta = beta, K_L = K_L, M_max = M_max, MTD = MTD,
+                              L_1 = L_1, L_2 = L_2, L_3 = L_3, L_4 = L_4, L_5 = L_5, M = M, Mfloor = Mfloor)
 
   return(modOut)
 }

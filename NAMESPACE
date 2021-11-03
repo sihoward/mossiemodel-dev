@@ -2,6 +2,7 @@
 
 export(append_TempSeq)
 export(formatTempSeq)
+export(getCalendarDayMeans)
 export(mosqpopn)
 export(plot_popn)
 export(plot_popn_years)

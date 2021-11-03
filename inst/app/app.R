@@ -12,7 +12,7 @@ library(clifro)
 library(readr)
 library(ggplot2)
 # install mosqmod package from repo before pushing to shinyapps
-# devtools::install_github(repo = "sihoward/mossiemodel-dev", ref = "master")
+# devtools::install_github(repo = "sihoward/mossiemodel-dev", ref = "development")
 library(mosqmod)
 
 # set cliflo_requests to TRUE if missing
@@ -25,21 +25,36 @@ ui <- fluidPage(
     titlePanel("MossieModel - dev"),
     sidebarLayout(
         # UI: sidebar -------------------------------------------------------------
-        sidebarPanel(dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
-                     conditionalPanel('false', numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100)),
+        sidebarPanel(selectInput(inputId = "selectStation", label = "Select site",
+                                 choices = c("Dunedin city (Musselburgh)", "Catlins (Nugget Point)")),
+                     dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
+                     numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100),
                      numericInput(inputId = "extend_days",label = "Project temperature by n days", value = 30),
-                     numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783)
+                     conditionalPanel('false',
+                     numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783),
+                     wellPanel(dateRangeInput("burninDates", label = "Run model burn-in over date range",
+                                              start = as.Date("2016-07-01"), end = as.Date("2017-06-30")),
+                               numericInput(inputId = "burnin.reps", label = "Repeat burnin sequence n times", value = 100),
+                               numericInput(inputId = "yrng", label = "set plot y scale maximum", value = NULL))
+                     )
         ),
         # UI: main panel ----------------------------------------------------------
         mainPanel(
             list(wellPanel(
-                fluidRow(column(6, actionButton(inputId = "runModel", label = "Run model", width = '100%')),
-                         column(6, checkboxGroupInput(inputId = "selectPopn", label = "Select population to plot",
+                fluidRow(column(4, actionButton(inputId = "runModel", label = "Run model", width = '100%')),
+                         column(4, checkboxGroupInput(inputId = "selectPopn", label = "Select population to plot",
                                                       choiceNames = list("Adults","Larvae"),
                                                       choiceValues = list("M","L"),
-                                                      selected = "M")) #,
-                         # conditionalPanel(condition = "input.runModel > 0",
-                         #                  column(4, downloadButton("downloadData", "Download results")))
+                                                      selected = "M")),
+                         conditionalPanel(condition = "input.runModel > 0",
+                                          column(4,
+                                                 downloadButton("downloadData", "Download results"),
+                                                 downloadButton("downloadReport", "Download report"),
+                                                 selectInput("dowloadFormat",
+                                                             label = "Report format",
+                                                             choices = c("pdf", "word")))
+                         )
+
                 )
             ),
             plotOutput("popnplot"),
@@ -60,23 +75,42 @@ ui <- fluidPage(
 server <- function(session, input, output) {
 
 
-    # load stored temperatures
+    # server: temperature times series ----
 
-    # progress <- shiny::Progress$new(min = 0, max = 5)
+    ## load saved temperature series
+    saved_station_temps <- mosqmod::saved_station_temps
 
-    # server: request CliFlo temperatures -------------------------------------
-    temp_stored <- mosqmod::append_TempSeq(temp_stored = read.csv("www/temp_data/Musselburgh_15752_2000-2021.csv",
-                                                                  stringsAsFactors = FALSE, na.strings = ""),
-                                           request = cliflo_requests,
-                                           date_append = as.Date(Sys.Date()),
-                                           username = Sys.getenv("cliflo_usrid"), password = Sys.getenv("cliflo_pwd"))
-    # progress$inc(amount = 0.1)
-    # progress$close()
+    ## select station from saved temperature series
+    temp_past <- reactive({
 
+        # convert saved temperature series to dataframe
+        dat <- data.frame(saved_station_temps)
+        # subset selected temperature series
+        subdat <- switch(input$selectStation,
+                         "Dunedin city (Musselburgh)" = subset(dat, Station == "Dunedin, Musselburgh Ews"),
+                         "Catlins (Nugget Point)" = subset(dat, Station == "Nugget Point Aws"))
+        subdat$source <- "stored"
 
-    # format sequence (fill gaps, format dates etc. )
-    temp_stored <- mosqmod::formatTempSeq(d = temp_stored)[c("Date", "Tmean", "calday", "source")]
+        ## request CliFlo temperatures ----
+        ## append selected temperature series (can fail if no rows retreived)
+        try({
+            showNotification(id = "cliflo_note", ui = "Making request to CliFlo climate server")
 
+            subdat <- mosqmod::append_TempSeq(# temp_stored = read.csv("www/temp_data/Musselburgh_15752_2000-2021.csv",
+                # stringsAsFactors = FALSE, na.strings = ""),
+                temp_stored = subdat,
+                request = cliflo_requests,
+                date_append = as.Date(Sys.Date()),
+                username = Sys.getenv("cliflo_usrid"), password = Sys.getenv("cliflo_pwd"))
+
+            showNotification("CliFlo request successful", duration = 1)
+            removeNotification(id = "cliflo_note")
+        })
+
+        # format sequence (fill gaps, format dates etc. )
+        mosqmod::formatTempSeq(d = subdat)
+
+    })
 
     # server: projected temperatures from calendar day means ------------------
     temp_seq <- reactive({
@@ -89,16 +123,22 @@ server <- function(session, input, output) {
             updateNumericInput(session, inputId = "extend_days", value = 0)
         }
 
-        # project temperature ahead using calendar day means
+        ## get past temperature series ----
+        dat <- temp_past()
+
+        # calculate calendar day means
+        calday_means <- mosqmod::getCalendarDayMeans(temp_hist = dat)
+
+        # project temperature ahead using calendar day means ----
         if(input$extend_days > 0) {
             # add projected temperatures
             temp_projected <-
-                mosqmod::project_TempSeq(temp_seq = temp_stored,
+                mosqmod::project_TempSeq(temp_seq = temp_past(),
                                          extend_days = input$extend_days, lookback_days = 90,
-                                         calday_means = read.csv("www/temp_data/calday_means.csv"))
-            temp_seq <- dplyr::bind_rows(temp_stored, temp_projected)
+                                         calday_means = calday_means)
+            temp_seq <- dplyr::bind_rows(temp_past(), temp_projected)
         } else {
-            temp_seq <- temp_stored
+            temp_seq <- temp_past()
         }
 
         return(temp_seq)
@@ -133,12 +173,21 @@ server <- function(session, input, output) {
                  sprintf("Select a 1st July start date after %s", min(temp_seq()$Date)+364))
         )
 
-        mosqmod::runModel(temp_seq = temp_seq(),
-                          burnin.dates = seq(input$runDates[1] - 365, input$runDates[1] - 1, 1),
+
+        showNotification(id = "model_update", ui = "Running model ...", duration = NULL)
+
+        model_results <- mosqmod::runModel(temp_seq = temp_seq(),
+                          burnin.dates = seq(input$burninDates[1], input$burninDates[2], 1),
                           run.dates = seq(input$runDates[1],
                                           input$runDates[2], 1),
                           M = input$Mfloor, Mfloor = input$Mfloor,
-                          MTD = input$MTD)
+                          MTD = input$MTD,
+                          burnin.reps = input$burnin.reps)
+
+        showNotification("Model completed", duration = 1)
+        removeNotification(id = "model_update")
+
+        return(model_results)
 
     }, ignoreInit = TRUE)
 
@@ -150,6 +199,36 @@ server <- function(session, input, output) {
         },
         content = function(file) {
             write.csv(res()[,-1], file, row.names = FALSE)
+        }
+    )
+
+    # server: download report -------------------------------------------
+    output$downloadReport <- downloadHandler(
+        filename = function() {
+            ext <- c(pdf = ".pdf", word = ".docx")[input$dowloadFormat]
+
+            paste0(format(Sys.time(), "model_results_%Y%m%d_%H%M%S"),
+                   ext)
+        },
+        content = function(file) {
+
+            # Copy the report file to a temporary directory before processing it, in
+            # case we don't have write permissions to the current working dir (which
+            # can happen when deployed).
+
+            tempReport <- file.path(tempdir(), "mm_report_template.Rmd")
+            file.copy(system.file("report/mm_report_template.Rmd", package = "mosqmod"), tempReport, overwrite = TRUE)
+
+            # Knit the document, passing in the `params` list, and eval it in a
+            # child of the global environment (this isolates the code in the document
+            # from the code in this app).
+
+            output_format <- c(pdf = "pdf_document", word = "word_document")[input$dowloadFormat]
+
+            rmarkdown::render(tempReport, output_file = file,
+                              params = list(res = res()),
+                              output_format = output_format,
+                              envir = new.env(parent = globalenv()))
         }
     )
 
@@ -173,7 +252,7 @@ server <- function(session, input, output) {
         validate(
             need(!is.null(input$selectPopn), "Select checkbox for plotting adults, larvae or both")
         )
-        mosqmod::plot_popn(resdf = res(), selectPopn = input$selectPopn)
+        mosqmod::plot_popn(resdf = res(), selectPopn = input$selectPopn) + ggplot2::coord_cartesian(ylim = c(0, input$yrng))
     })
 
 
