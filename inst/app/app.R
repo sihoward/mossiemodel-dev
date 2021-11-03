@@ -211,7 +211,11 @@ server <- function(session, input, output) {
             format(Sys.time(), "model_results_%Y%m%d_%H%M%S.csv")
         },
         content = function(file) {
-            write.csv(res()[,-1], file, row.names = FALSE)
+
+            selectCols <- c("Date", "Station", "Tmean", "L", "M", "source",
+                            "datetime", "interpolated", "Tmean_calday")
+
+            write.csv(res()[selectCols], file, row.names = FALSE)
         }
     )
 
