@@ -56,12 +56,11 @@ plot_popn <- function(resdf,
   gg <-
     ggplot2::ggplot(d, ggplot2::aes(y = .data$value, x = .data$Date,
                                     color = .data$name, size = .data$Temperature)) +
-    ggplot2::geom_line() +
+    ggplot2::geom_line(linejoin = "round") +
     ggplot2::scale_color_discrete(name = "Population",
                          labels = function(x) c(L = "Larvae", M = "Adults", Tmean = "Temperature")[x],
                          guide = ggplot2::guide_legend(order = 1)) +
-    ggplot2::scale_size_manual(breaks = c("recorded", "projected"), values = c(1.2,0.5),
-                               guide = ggplot2::guide_legend(order = 2))
+    ggplot2::scale_size_discrete(range = c(1,0.5), guide = ggplot2::guide_legend(order = 2))
 
 
   if(!include_temp){
@@ -143,17 +142,20 @@ plot_popn_years <- function(resdf,
     ylab_scaled <- paste0("Population size\n(number per square km)")
   }
 
+  # dataframe ordered by date
+  d <- d[order(d$Date),]
 
   gg <- ggplot2::ggplot(d, ggplot2::aes(y = .data$value, x = .data$Date,
-                                        color = .data$Year, group = .data$Year,
+                                        color = .data$Year,
                                         size = .data$Temperature)) +
-    ggplot2::geom_line() +
+    ggplot2::geom_path(linejoin = "round") +
     ggplot2::labs(y = ylab_scaled) +
     ggplot2::scale_x_date(breaks = seq(min(d$Date), by = "3 month", length.out = 5),
                           date_minor_breaks = "1 month",
                           date_label = "%b") +
     ggplot2::scale_color_brewer(palette = "Dark2") +
-    ggplot2::scale_size_manual(breaks = c("recorded", "projected"), values = c(1.2,0.5))
+    ggplot2::scale_size_discrete(breaks = c("recorded", "projected"), range = c(1,0.5))
+
 
   if(length(selectPopn) > 1){
     gg <- gg + ggplot2::facet_wrap(~name, scales = "free_y")
