@@ -1,17 +1,30 @@
 ---
-title: "MossieModel Results Report"
-date: "`r paste('Report generated', format(Sys.Date(), '%B %e, %Y'))`"
 output:
-  word_document: default
   pdf_document: default
   html_document: default
+  word_document: default
 fontsize: 10pt
 geometry: margin=0.5in
+urlcolor: blue
 editor_options:
   chunk_output_type: console
 params:
   res: null
 ---
+
+<!-- [![](images/MW_LR_Landscape_lge_blk-01.png){width="200"}](https://www.landcareresearch.co.nz/)   -->
+
+```{r MWLR logo, echo=FALSE, fig.align='right', out.width='2in'}
+knitr::include_graphics(system.file("app/www/MW_LR_Landscape_lge_blk.png", package = "mosqmod"))
+```
+
+# MossieModel Results Report
+
+[Chris Niebuhr](https://www.landcareresearch.co.nz/about-us/our-people/chris-niebuhr)\*, [Simon Howard](https://www.landcareresearch.co.nz/about-us/our-people/simon-howard)\*
+
+**\* Manaaki Whenua --- Landcare Research**
+
+*Report generated using* [landcare.shinyapps.io/MossieModel](https://landcare.shinyapps.io/MossieModel/) *on `r format(Sys.Date(), '%e %B, %Y')`*
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -28,7 +41,7 @@ if(is.null(params$res)) example("runModel", package = "mosqmod")
 
 ```
 
-# Model parameters
+### Model parameters
 
 ```{r format parameters, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
 
@@ -65,7 +78,7 @@ param_descript <-
     beta = "Daily larval mortality rate", 
     K_L = "Larval carrying capacity (numbers/km^2)", 
     M_max = "Maximum adult density (numbers/km^2)", 
-    MTD = "Minimum temperature for\nmosquito development", 
+    MTD = "Minimum development temperature", 
     L_1 = "Starting density of first instar larvae", 
     L_2 = "Starting density of second instar larvae",
     L_3 = "Starting density of third instar larvae",
@@ -128,19 +141,23 @@ temp_series_appendix <- temp_series[-c(1,5),]
 temp_series_front$Type[-1] <- temp_series_appendix$Type[-1] <- NA
 
 # knit front page table
-knitr::kable(rbind(general_info, model_params_front[c("Type", "Description", "Value")], temp_series_front), row.names = FALSE)
+knitr::kable(rbind(general_info, model_params_front[c("Type", "Description", "Value")], temp_series_front), row.names = FALSE, align = c("l", "l", "r"))
 ```
 
-```{r population plot, dpi = 150, echo = FALSE, out.width = '90%', out.height = '40%'}
-mosqmod::plot_popn(res, selectPopn = c("M")) + ggplot2::theme(text = ggplot2::element_text(size = 10), line = ggplot2::element_line(size = 0.8))
+<!-- Here is a footnote reference,[^1] and another.[^longnote] -->
+
+```{r render plots, echo=FALSE, fig.align='center', fig.width=8, message=FALSE, warning=FALSE}
+gg_series <- mosqmod::plot_popn(res, selectPopn = c("M")) + ggplot2::theme(text = ggplot2::element_text(size = 10)) #, line = ggplot2::element_line(size = 5))
+gg_overlay <- mosqmod::plot_popn_years(res, selectPopn = c("M")) + ggplot2::theme(text = ggplot2::element_text(size = 10))
+                                                 
+cowplot::plot_grid(gg_series, gg_overlay)
 ```
 
-```{r population overlay, dpi = 150, echo = FALSE, out.width = '90%', out.height = '40%'}
-mosqmod::plot_popn_years(res, selectPopn = c("L", "M")) + ggplot2::theme(text = ggplot2::element_text(size = 10), line = ggplot2::element_line(size = 0.8))
-```
+\newpage
+
+#### Additional parameters
 
 ```{r appendix table, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
 # knit appendix table
-knitr::kable(rbind(model_params_appendix[c("Type", "Description", "Value")], temp_series_appendix), row.names = FALSE)
+knitr::kable(rbind(model_params_appendix[c("Type", "Description", "Value")], temp_series_appendix), row.names = FALSE, align = c("l", "l", "r"))
 ```
-
