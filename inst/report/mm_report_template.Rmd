@@ -1,7 +1,7 @@
 ---
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
   word_document: default
 fontsize: 10pt
 geometry: margin=0.5in
@@ -20,11 +20,11 @@ knitr::include_graphics(system.file("app/www/MW_LR_Landscape_lge_blk.png", packa
 
 # MossieModel Results Report
 
-[Chris Niebuhr](https://www.landcareresearch.co.nz/about-us/our-people/chris-niebuhr)\*, [Simon Howard](https://www.landcareresearch.co.nz/about-us/our-people/simon-howard)\*
+[Chris Niebuhr](https://www.landcareresearch.co.nz/about-us/our-people/chris-niebuhr){target="_blank"}\*, [Simon Howard](https://www.landcareresearch.co.nz/about-us/our-people/simon-howard){target="_blank"}\*
 
 **\* Manaaki Whenua --- Landcare Research**
 
-*Report generated using* [landcare.shinyapps.io/MossieModel](https://landcare.shinyapps.io/MossieModel/) *on `r format(Sys.Date(), '%e %B, %Y')`*
+*Report generated using* [landcare.shinyapps.io/MossieModel](https://landcare.shinyapps.io/MossieModel/){target="_blank"} *on `r format(Sys.Date(), '%e %B, %Y')`*
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
