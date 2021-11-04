@@ -96,7 +96,6 @@ server <- function(session, input, output) {
         subdat <- switch(input$selectStation,
                          "Dunedin city (Musselburgh)" = subset(dat, Station == "Dunedin, Musselburgh Ews"),
                          "Catlins (Nugget Point)" = subset(dat, Station == "Nugget Point Aws"))
-        subdat$source <- "stored"
 
         ## request CliFlo temperatures ----
         ## append selected temperature series (can fail if no rows retreived)
@@ -154,16 +153,21 @@ server <- function(session, input, output) {
 
 
     # server: update projected days if end date > projected days --------------
-    observeEvent(input$runDates, {
-        if(input$runDates[2] > max(temp_seq()$Date)){
-            updateNumericInput(session, inputId = "extend_days", value = input$extend_days + as.numeric(input$runDates[2] - max(temp_seq()$Date)))
-        }
-    })
+    observeEvent({
+        input$runDates
+        input$extend_days},
+        {
+            latest_record <- max(temp_seq()$Date[temp_seq()$source %in% c("stored", "retreived")])
 
-    observeEvent(input$extend_days, {
-        updateDateRangeInput(session, inputId = "runDates", end = max(temp_seq()$Date))
-    })
+            if(input$runDates[2] == Sys.Date()){
+                updateDateRangeInput(session, inputId = "runDates", end = Sys.Date() + (input$extend_days - 1))
+            }
 
+            # if last run date is > last retreived record + extend days, reset to last retreived record + extend days
+            if((latest_record + input$extend_days) < input$runDates[2]){
+                updateDateRangeInput(session, inputId = "runDates", end = (latest_record + input$extend_days))
+            }
+        }, priority = 1)
 
 
     # server: runModel() ------------------------------------------------------
@@ -183,10 +187,21 @@ server <- function(session, input, output) {
 
         showNotification(id = "model_update", ui = "Running model ...", duration = NULL)
 
+        # at startup input$runDates[2] defaults to system date
+        #  - extend last day if last run date matches system date before
+        #    updateDateRangeInput() runs to update input$runDates values
+        if(input$runDates[2] == Sys.Date()){
+            run.date.last <- Sys.Date() + (input$extend_days-1)
+        } else {
+            run.date.last <- input$runDates[2]
+        }
+
+        # run model function
         model_results <- mosqmod::runModel(temp_seq = temp_seq(),
                           burnin.dates = seq(input$burninDates[1], input$burninDates[2], 1),
-                          run.dates = seq(input$runDates[1],
-                                          input$runDates[2], 1),
+                          run.dates = seq(from = input$runDates[1],
+                                          to = run.date.last,
+                                          by = "1 day"),
                           M = input$Mfloor, Mfloor = input$Mfloor,
                           MTD = input$MTD,
                           burnin.reps = input$burnin.reps)
