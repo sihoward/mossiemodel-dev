@@ -167,6 +167,12 @@ server <- function(session, input, output) {
             if((latest_record + input$extend_days) < input$runDates[2]){
                 updateDateRangeInput(session, inputId = "runDates", end = (latest_record + input$extend_days))
             }
+
+            # if last run date < last retreived record + extend days, reset to last retreived record + extend days
+            if((latest_record + input$extend_days) > input$runDates[2]){
+                updateDateRangeInput(session, inputId = "runDates", end = (latest_record + input$extend_days))
+            }
+
         }, priority = 1)
 
 
