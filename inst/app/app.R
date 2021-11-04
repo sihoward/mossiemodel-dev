@@ -12,7 +12,7 @@ library(clifro)
 library(readr)
 library(ggplot2)
 # install mosqmod package from repo before pushing to shinyapps
-# devtools::install_github(repo = "sihoward/mossiemodel-dev", ref = "development")
+# devtools::install_github(repo = "sihoward/mossiemodel-dev", ref = "master")
 library(mosqmod)
 
 # set cliflo_requests to TRUE if missing
@@ -248,6 +248,8 @@ server <- function(session, input, output) {
             # case we don't have write permissions to the current working dir (which
             # can happen when deployed).
 
+            showNotification(id = "report_update", ui = "Generating report ...", duration = NULL)
+
             tempReport <- file.path(tempdir(), "mm_report_template.Rmd")
             file.copy(system.file("report/mm_report_template.Rmd", package = "mosqmod"), tempReport, overwrite = TRUE)
 
@@ -261,6 +263,10 @@ server <- function(session, input, output) {
                               params = list(res = res()),
                               output_format = output_format,
                               envir = new.env(parent = globalenv()))
+
+            showNotification("Report completed", duration = 1)
+            removeNotification(id = "report_update")
+
         }
     )
 
