@@ -200,7 +200,7 @@ getCalendarDayMeans <-
   subdat <- subset(temp_hist, Date >= start_end_dates[2])
 
   # calculate calendar day means
-  calday_means <- aggregate(Tmean ~ calday, FUN = mean, data = subdat)
+  calday_means <- stats::aggregate(Tmean ~ calday, FUN = mean, data = subdat)
 
   # rename Tmean column
   calday_means$Tmean_calday <- calday_means$Tmean
