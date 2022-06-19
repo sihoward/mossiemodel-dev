@@ -11,10 +11,27 @@
 #' @export
 plot_popn <- function(resdf,
                       selectPopn = c("L", "L_1", "L_2", "L_3", "L_4", "L_5", "M"),
-                      include_temp = TRUE, include_plasmod = TRUE){
+                      include_temp = TRUE, include_plasmod = TRUE, MTT = NULL){
 
   if(include_temp){
+    # add temperature to columns in resdf to plot
     selectPopn <- c(selectPopn, "Tmean")
+
+    if(!is.null(MTT)){
+      # create horizontal line in temperature panel at MTT
+      gg_MTTline <-
+        ggplot2::geom_hline(aes(yintercept = MTT, linetype = "mtt"),
+                            data = data.frame(name = selectPopn,
+                                              MTT = ifelse(selectPopn == "Tmean", MTT, NA)),
+                            show.legend = TRUE)
+      gg_MTTscale <- ggplot2::scale_linetype_manual(name = NULL,
+                                                    values = c('mtt' = "dashed"),
+                                                    labels = c('mtt' = "Min temp for\nP. relictum sporogeny"),
+                                                    guide = ggplot2::guide_legend(order = 3))
+    } else {
+      gg_MTTline <- NULL
+      gg_MTTscale <- NULL
+    }
   }
 
   # stack selected columns
@@ -65,24 +82,32 @@ plot_popn <- function(resdf,
                  ymin = -Inf, ymax = Inf)
 
     # store geoms to draw deveopment windows
-    gg_devel <-
+    gg_DEVRect <-
       ggplot2::geom_rect(data = devel_windows,
-                         ggplot2::aes(xmin = xmin, xmax = xmax, ymax = Inf, ymin = -Inf),
-                         inherit.aes = FALSE, alpha = 0.3)
+                         ggplot2::aes(xmin = xmin, xmax = xmax, ymax = Inf, ymin = -Inf,
+                                      fill = "reqmet"),
+                         inherit.aes = FALSE, alpha = 0.15)
+
+    gg_DEVscale <-
+      ggplot2::scale_fill_manual(name = NULL,
+                                 values = c('reqmet' = "tomato"),
+                                 labels = c('reqmet' = "Thermal requirements for \nP. relictum development met"),
+                                 guide = ggplot2::guide_legend(order = 4, override.aes = list(linetype = 0)))
   } else {
     # store NULL when !include_plasmod
-    gg_devel <- NULL
+    gg_DEVRect <- NULL
+    gg_DEVscale <- NULL
   }
 
   gg <-
     ggplot2::ggplot(d, ggplot2::aes(y = .data$value, x = .data$Date,
                                     color = .data$name)) +
-    gg_devel +
+    gg_DEVRect + gg_DEVscale +
     ggplot2::geom_line(linejoin = "round") +
     ggplot2::geom_line(ggplot2::aes(size = .data$Temperature), linejoin = "round") +
     ggplot2::scale_color_discrete(name = "Population",
-                         labels = function(x) c(L = "Larvae", M = "Adults", Tmean = "Temperature")[x],
-                         guide = ggplot2::guide_legend(order = 1)) +
+                                  labels = function(x) c(L = "Larvae", M = "Adults", Tmean = "Temperature")[x],
+                                  guide = ggplot2::guide_legend(order = 1)) +
     ggplot2::scale_size_discrete(range = c(1,0.5), guide = ggplot2::guide_legend(order = 2))
 
 
@@ -93,7 +118,8 @@ plot_popn <- function(resdf,
                                    labeller = ggplot2::as_labeller(c('TRUE' = "Temperature\n(degrees C)",
                                                                      'FALSE' = ylab_scaled)),
                                    switch = "y") +
-      ggplot2::labs(y = NULL)
+      ggplot2::labs(y = NULL) +
+      gg_MTTline + gg_MTTscale  # add MTT line
   }
 
   # format x breaks and labels
