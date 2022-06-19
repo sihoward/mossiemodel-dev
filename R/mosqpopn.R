@@ -226,11 +226,11 @@ runModel <- function(# burn-in range
 #' series.
 #'
 #' Whether the thermal requirements for plasmodium developent are met is
-#' controlled by three values. Minimum threshold temperature for development
-#' (\code{MTD}) is the temperature above which sporogenic development occurs.
+#' controlled by three values. Minimum threshold temperature (\code{MTT}) for
+#' development is the temperature above which sporogenic development occurs.
 #' Time to development is measured in degree days and is the cumulative sum of
-#' the difference between daily temperatures and the MTD. If temperatures remain
-#' below the MTD longer than the value of \code{timeout} then the cumulative
+#' the difference between daily temperatures and the MTT. If temperatures remain
+#' below the MTT longer than the value of \code{timeout} then the cumulative
 #' degree days reset back to zero. Any time the temperature drops below zero
 #' (degress Celsius) the cumulative degree days are also reset to zero.
 #'
@@ -251,13 +251,13 @@ runModel <- function(# burn-in range
 #' from avian malaria. Global Ecology and Conservation. 23:e01069.
 #'
 #' @param envtemp temperature time series
-#' @param MTD minimum threshold temperature (MTD) for sporogenic development in plasmodium
-#' @param devel_degdays degree days above MTD to complete development
-#' @param timeout reset cumulative degree days if temperature below MTD for consecutive values
+#' @param MTT minimum threshold temperature (MTT) for sporogenic development in plasmodium
+#' @param devel_degdays degree days above MTT to complete development
+#' @param timeout reset cumulative degree days if temperature below MTT for consecutive values
 #'
 #' @return \code{plasmod_devel()} returns a \code{\link[base]{data.frame}} with
 #'   the initial temperature time series ('envtemp'), the physiologically
-#'   effective temperature (temperature minus the MTD: 'phystemp'), days since
+#'   effective temperature (temperature minus the MTT: 'phystemp'), days since
 #'   last zero physiologically effective temperature ('lastzero'), degree days
 #'   ('degdays') and whether the thermal requirements for development are met
 #'   ('thermal_req').
@@ -271,12 +271,12 @@ runModel <- function(# burn-in range
 #'   points(y = d$degdays / max(d$degdays) * max(d$envtemp), x = seq_along(d$envtemp), type = "l", col = "red")
 #'   abline(h = 12.97, col = "blue")
 #' }
-plasmod_devel <- function(envtemp, MTD = 12.97, devel_degdays = 86.21, timeout = 30L){
+plasmod_devel <- function(envtemp, MTT = 12.97, devel_degdays = 86.21, timeout = 30L){
 
   if(any(is.na(envtemp))) stop("NAs present in envtemp argument passed to plasmod_devel function")
 
   # physiologically effective temperature (see Trudgill et al. 2005 p2)
-  phystemp <- (envtemp - MTD) * ((envtemp - MTD) > 0)
+  phystemp <- (envtemp - MTT) * ((envtemp - MTT) > 0)
 
   # days since last zero degree day
   lastzero <- cumsum(phystemp == 0) - cummax(cumsum(phystemp == 0) * (phystemp > 0))
@@ -284,9 +284,9 @@ plasmod_devel <- function(envtemp, MTD = 12.97, devel_degdays = 86.21, timeout =
   # cumulative degree days (using physiologically effective temperature)
   degdays <- cumsum(phystemp)
 
-  ## reset degree days when consecutive days below MTD > timeout or
+  ## reset degree days when consecutive days below MTT > timeout or
   ## environmental temp. zero or less
-  # if > timeout days subtract cumulative phystemp from last day < MTD
+  # if > timeout days subtract cumulative phystemp from last day < MTT
   # if envtemp < 0 subtract cumulative phystemp from last day above zero
   degdays <- degdays - cummax((lastzero > timeout | envtemp <= 0) * cumsum(phystemp))
 
