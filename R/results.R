@@ -11,7 +11,7 @@
 #' @export
 plot_popn <- function(resdf,
                       selectPopn = c("L", "L_1", "L_2", "L_3", "L_4", "L_5", "M"),
-                      include_temp = TRUE){
+                      include_temp = TRUE, include_plasmod = TRUE){
 
   if(include_temp){
     selectPopn <- c(selectPopn, "Tmean")
@@ -52,10 +52,39 @@ plot_popn <- function(resdf,
     ylab_scaled <- paste0("Population size\n(number per square km)")
   }
 
+  if(include_plasmod){
+    # get temperature time series
+    Tseq <- resdf[c("Date", "Tmean")]
+    # check for non-contiguous dates and gaps
+    if(any(diff(Tseq$Date) != 1)) stop("non-contiguous dates in temperature series passed to plasmod_devel()")
+    # are thermal requirements met on each date?
+    thermal_req <- plasmod_devel(Tseq$Tmean)[["thermal_req"]]
+
+    # find start and stop dates when requirements are met
+    startdate <- Tseq$Date[diff(c(FALSE, thermal_req, FALSE)) == 1]
+    enddate <- Tseq$Date[diff(c(thermal_req, FALSE)) == -1]
+
+    # combine development windows and repeat for each plot panel
+    devel_windows <-
+      data.frame(name = rep(selectPopn, each = length(startdate)),
+                 xmin = rep(startdate, times = length(selectPopn)),
+                 xmax = rep(enddate, times = length(selectPopn)),
+                 ymin = -Inf, ymax = Inf)
+
+    # store geoms to draw deveopment windows
+    gg_devel <-
+      ggplot2::geom_rect(data = devel_windows,
+                         ggplot2::aes(xmin = xmin, xmax = xmax, ymax = Inf, ymin = -Inf),
+                         inherit.aes = FALSE, alpha = 0.3)
+  } else {
+    # store NULL when !include_plasmod
+    gg_devel <- NULL
+  }
 
   gg <-
     ggplot2::ggplot(d, ggplot2::aes(y = .data$value, x = .data$Date,
                                     color = .data$name, size = .data$Temperature)) +
+    gg_devel +
     ggplot2::geom_line(linejoin = "round") +
     ggplot2::scale_color_discrete(name = "Population",
                          labels = function(x) c(L = "Larvae", M = "Adults", Tmean = "Temperature")[x],
