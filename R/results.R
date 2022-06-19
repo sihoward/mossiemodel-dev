@@ -17,13 +17,6 @@ plot_popn <- function(resdf,
     selectPopn <- c(selectPopn, "Tmean")
   }
 
-  # append last recorded temperature (removes gap when drawing geom_line)
-  if(any(resdf$source != "projected")){
-    last.recorded <- resdf[max(which(resdf$source != "projected")),]
-    last.recorded$source <- "projected"
-    resdf <- rbind(resdf, last.recorded)
-  }
-
   # stack selected columns
   d <- tidyr::pivot_longer(resdf, cols = dplyr::all_of(selectPopn))
   # respect plotting order of selectPopn
@@ -83,9 +76,10 @@ plot_popn <- function(resdf,
 
   gg <-
     ggplot2::ggplot(d, ggplot2::aes(y = .data$value, x = .data$Date,
-                                    color = .data$name, size = .data$Temperature)) +
+                                    color = .data$name)) +
     gg_devel +
     ggplot2::geom_line(linejoin = "round") +
+    ggplot2::geom_line(ggplot2::aes(size = .data$Temperature), linejoin = "round") +
     ggplot2::scale_color_discrete(name = "Population",
                          labels = function(x) c(L = "Larvae", M = "Adults", Tmean = "Temperature")[x],
                          guide = ggplot2::guide_legend(order = 1)) +
