@@ -9,27 +9,6 @@
 # Simon Howard; howards@landcareresearch.co.nz | si.w.howard@gmail.com
 #-------------------------------------------------------------------------#
 
-#' Title
-#'
-#' @param temp_ts temperature time series
-#' @param b number of female eggs per clutch
-#' @param alpha adult mortality rate (1/days)
-#' @param beta larval mortality rate (1/days)
-#' @param K_L larval carrying capacity (numbers/km^2)
-#' @param M_max max adult density
-#' @param MTD minimum temperature for mosquito development)
-#' @param L_1 Initial instar densities (1-5)
-#' @param L_2 see above
-#' @param L_3 see above
-#' @param L_4 see above
-#' @param L_5 see above
-#' @param M Initial adult density
-#'
-#' @return
-#' @export
-#'
-#' @examples
-
 mosqpopn <- function(temp_ts, # temperature time series
                      b,       # number of female eggs per clutch
                      alpha,   # adult mortality rate (1/days)

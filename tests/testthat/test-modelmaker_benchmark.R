@@ -19,16 +19,16 @@ test_that("mospopn matches ModelMaker output", {
 
   # run model using ModelMaker (MM) parameters ------------------------------
 
-  out <- mosqmod::mosqpopn(temp_seq,
-                           b = 100,           # number of female eggs per clutch
-                           alpha = 0.073,     # adult mortality rate (1/days)
-                           beta = 0.0315,     # larval mortality rate (1/days)
-                           K_L = 2710200,     # larval carrying capacity (numbers/km^2)
-                           M_max = 1000060,   # max adult density
-                           MTD = 7.783,       # minimum temperature for mosquito development)
-                           L_1 = 0, L_2 = 0,  L_3 = 0, L_4 = 0, L_5 = 0,
-                           M = 100,
-                           Mfloor = 0.01)
+  out <- mosqpopn(temp_seq,
+                  b = 100,           # number of female eggs per clutch
+                  alpha = 0.073,     # adult mortality rate (1/days)
+                  beta = 0.0315,     # larval mortality rate (1/days)
+                  K_L = 2710200,     # larval carrying capacity (numbers/km^2)
+                  M_max = 1000060,   # max adult density
+                  MTD = 7.783,       # minimum temperature for mosquito development)
+                  L_1 = 0, L_2 = 0,  L_3 = 0, L_4 = 0, L_5 = 0,
+                  M = 100,
+                  Mfloor = 0.01)
 
   # compare to MM results ---------------------------------------------------
 
