@@ -53,9 +53,12 @@ Thumbs.db
 .Renviron
 MossieModel - dev.url
 *.Rproj
+inst/app/www/MW_LR_Landscape_small_27px height.png
+inst/app/www/MW_LR_portrait.jpg
 
 # folders
 sketches/
 emails/
 inst/app/rsconnect
 extras/
+man/
