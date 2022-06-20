@@ -287,9 +287,10 @@ server <- function(session, input, output) {
 
     # server: popnplot --------------------------------------------------------
     output$popnplot <- renderPlot({
-        validate(
-            need(!is.null(input$selectPopn), "Select checkbox for plotting adults, larvae or both")
-        )
+
+      validate(
+        need(input$runModel > 0, "Press 'Run model' to display model results")
+      )
 
       req(res())
 
