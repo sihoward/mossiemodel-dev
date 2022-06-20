@@ -11,27 +11,39 @@
 #' @export
 plot_popn <- function(resdf,
                       selectPopn = c("L", "L_1", "L_2", "L_3", "L_4", "L_5", "M"),
-                      include_temp = TRUE, include_plasmod = TRUE, MTT = NULL){
+                      include_temp = TRUE, include_plasmod = TRUE, MTT = NULL, MTD = NULL){
 
   if(include_temp){
     # add temperature to columns in resdf to plot
     selectPopn <- c(selectPopn, "Tmean")
 
-    if(!is.null(MTT)){
-      # create horizontal line in temperature panel at MTT
-      gg_MTTline <-
-        ggplot2::geom_hline(aes(yintercept = MTT, linetype = "mtt"),
-                            data = data.frame(name = selectPopn,
-                                              MTT = ifelse(selectPopn == "Tmean", MTT, NA)),
-                            show.legend = TRUE)
-      gg_MTTscale <- ggplot2::scale_linetype_manual(name = NULL,
-                                                    values = c('mtt' = "dashed"),
-                                                    labels = c('mtt' = "Min temp for\nPlasmodium sporogeny"),
-                                                    guide = ggplot2::guide_legend(order = 3))
+    if(!is.null(MTT) | !is.null(MTD)){
+
+      # values available?
+      ind <- c(!is.null(MTT), !is.null(MTD))
+
+      # dataframe combining MTT and MTD
+      mintemp_df <-
+        data.frame(name = rep(selectPopn, 2),
+                   yintercept = c(ifelse(selectPopn == "Tmean" & !is.null(MTT), MTT, NA),
+                                  ifelse(selectPopn == "Tmean" & !is.null(MTD), MTD, NA)),
+                   line = rep(c("mtt", "mtd"), each = length(selectPopn)))
+
+      # create horizontal lines in temperature panel
+      gg_mintempLine <-
+        ggplot2::geom_hline(aes(yintercept = yintercept, linetype = line),
+                            data = mintemp_df, show.legend = TRUE)
+      gg_mintempScale <-
+        ggplot2::scale_linetype_manual(name = "Min temperature",
+                                       values = c('mtt' = "dashed", "mtd" = "dotted")[ind],
+                                       labels = c('mtt' = "Plasmodium sporogeny",
+                                                  'mtd' = "Mosquito development")[ind],
+                                       guide = ggplot2::guide_legend(order = 3))
     } else {
-      gg_MTTline <- NULL
-      gg_MTTscale <- NULL
+      gg_mintempLine <- NULL
+      gg_mintempScale <- NULL
     }
+
   }
 
   # stack selected columns
@@ -119,7 +131,7 @@ plot_popn <- function(resdf,
                                                                      'FALSE' = ylab_scaled)),
                                    switch = "y") +
       ggplot2::labs(y = NULL) +
-      gg_MTTline + gg_MTTscale  # add MTT line
+      gg_mintempLine + gg_mintempScale
   }
 
   # format x breaks and labels

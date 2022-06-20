@@ -296,7 +296,7 @@ server <- function(session, input, output) {
 
       mosqmod::plot_popn(resdf = res(),
                          selectPopn = input$selectPopn, include_temp = TRUE,
-                         include_plasmod = TRUE, MTT = 12.97) +
+                         include_plasmod = TRUE, MTT = 12.97, MTD = input$MTD) +
         ggplot2::coord_cartesian(ylim = c(0, input$yrng))
     })
 
