@@ -26,7 +26,7 @@ plot_popn <- function(resdf,
                             show.legend = TRUE)
       gg_MTTscale <- ggplot2::scale_linetype_manual(name = NULL,
                                                     values = c('mtt' = "dashed"),
-                                                    labels = c('mtt' = "Min temp for\nP. relictum sporogeny"),
+                                                    labels = c('mtt' = "Min temp for\nPlasmodium sporogeny"),
                                                     guide = ggplot2::guide_legend(order = 3))
     } else {
       gg_MTTline <- NULL
@@ -91,7 +91,7 @@ plot_popn <- function(resdf,
     gg_DEVscale <-
       ggplot2::scale_fill_manual(name = NULL,
                                  values = c('reqmet' = "tomato"),
-                                 labels = c('reqmet' = "Thermal requirements for \nP. relictum development met"),
+                                 labels = c('reqmet' = "Avian malaria risk"),
                                  guide = ggplot2::guide_legend(order = 4, override.aes = list(linetype = 0)))
   } else {
     # store NULL when !include_plasmod
