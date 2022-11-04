@@ -209,6 +209,8 @@ getCalendarDayMeans <-
            lookback = "-10 year",
            series_ending = NULL){
 
+  Date <- NULL
+
   # use last date in temp series if no series_ending date given
   if(is.null(series_ending)){
     series_ending <- max(temp_hist$Date)

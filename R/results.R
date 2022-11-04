@@ -18,6 +18,9 @@ plot_popn <- function(resdf,
                       selectPopn = c("L", "L_1", "L_2", "L_3", "L_4", "L_5", "M"),
                       include_temp = TRUE, include_plasmod = TRUE, MTT = NULL, MTD = NULL){
 
+  # set global vars (to pass package checks)
+  line <- xmax <- xmin <- yintercept <- NULL
+
   if(include_temp){
     # add temperature to columns in resdf to plot
     selectPopn <- c(selectPopn, "Tmean")
