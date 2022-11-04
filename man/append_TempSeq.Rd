@@ -23,9 +23,6 @@ append_TempSeq(
 
 \item{password}{CliFlo login password.}
 }
-\value{
-
-}
 \description{
 Append temperature times series with latest temperature from NIWA's CliFlo database.
 }

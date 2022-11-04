@@ -9,7 +9,7 @@ test_that("time series formatting interpolates missing points", {
   d.missing$Tmin.C.[seq(2,24,2)] <- NA    # create gaps in time series
   d.missing$Tmax.C.[seq(2,24,2)] <- NA
 
-  res <- mosqmod::formatTempSeq(d.missing)
+  res <- formatTempSeq(d.missing)
 
   # tests
   expect_equal(res$Tmin, d$Tmin.C., tolerance = 1e-6)

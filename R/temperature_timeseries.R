@@ -1,4 +1,18 @@
-#' @importFrom rlang .data
+#' Format cliflo temperature time series
+#'
+#' Formats raw cliflo temperature time series for use in later functions. A
+#' major operation is filling gaps in the timeseries which are present in the
+#' cliflo database. Gaps are filled using a straight line interpolation between
+#' the points adjoining the gap in the record.
+#'
+#' Interpolated values are also stored in a separate column 'interpolated' so
+#' gaps can be identified (dates without gaps have NA in this column).
+#'
+#' Mean temperatures are calculated by dividing the daily min and max
+#' temperatures by 2.
+#'
+#' @param d data.frame from \code{\link[mosqmod]{append_TempSeq}}.
+#'
 #' @export
 formatTempSeq <- function(d){
 
@@ -67,7 +81,6 @@ formatTempSeq <- function(d){
 #' @param username CliFlo login username (see 'https://cliflo.niwa.co.nz')
 #' @param password CliFlo login password.
 #'
-#' @return
 #' @export
 #'
 #' @examples
@@ -100,7 +113,7 @@ append_TempSeq <- function(temp_stored,
                           password = password)
     my.dts <- clifro::cf_datatype(select_1 = 4, select_2 = 2, check_box = 1)
     # find matching station ID from stored name
-    match.StationID <- cf_find_station(temp_stored$Station[1], search = "name")[["agent"]]
+    match.StationID <- clifro::cf_find_station(temp_stored$Station[1], search = "name")[["agent"]]
     # my.stations = clifro::cf_station(15752)       # 15752 - Musselburgh station ID
     my.stations <- clifro::cf_station(match.StationID)
 
@@ -124,6 +137,19 @@ append_TempSeq <- function(temp_stored,
   return(temp_append)
 }
 
+
+#' Projected temperatures from current temperature difference between calendar
+#' day means
+#'
+#' @param temp_seq Formatted temperature time series from
+#'   \code{\link[mosqmod]{formatTempSeq}}.
+#' @param extend_days Number of days to extend time series.
+#' @param lookback_days Number of preceeding days to calculate difference
+#'   between calendar day means and recent temperatures.
+#' @param calday_means Calendar day means used to calculate differences
+#'   between historical and recent temperatures. Generated using from
+#'   \code{\link[mosqmod]{getCalendarDayMeans}}.
+#'
 #' @export
 project_TempSeq <- function(temp_seq = temp_seq,
                             extend_days = 30,
@@ -158,14 +184,13 @@ project_TempSeq <- function(temp_seq = temp_seq,
 #' Calculate calendar day mean temperatures from historical series
 #'
 #' @param temp_hist Temperature time series formatted using
-#'   mosqmod::formatTempSeq.
+#'   \code{\link[mosqmod]{formatTempSeq}}.
 #' @param lookback Subset the historical time series starting at a past date.
 #'   Must match the format for the 'by' argument in \code{\link{seq.Date}}.
 #' @param series_ending Subset the historical time series ending date. Must be a
 #'   valid \code{\link{Dates}} object. When set to NULL (default) the most
 #'   recent date in the temperature time series is used.
 #'
-#' @return
 #' @export
 #'
 #' @examples
@@ -174,14 +199,17 @@ project_TempSeq <- function(temp_seq = temp_seq,
 #' temp_hist <- mosqmod::formatTempSeq(temp_hist)
 #' # using default - 10 years from most recent temperature
 #' getCalendarDayMeans(temp_hist = temp_hist)
-#' \dontrun{
-#' # customised - 5 years from end-2015
-#' getCalendarDayMeans(temp_hist = temp_hist, lookback = "-5 year", series_ending = as.Date("2015-12-31"))
-#' }
+# \dontrun{
+# # customised - 5 years from end-2015
+# getCalendarDayMeans(temp_hist = temp_hist, lookback = "-5 year",
+#                     series_ending = as.Date("2015-12-31"))
+# }
 getCalendarDayMeans <-
   function(temp_hist = temp_hist,
            lookback = "-10 year",
            series_ending = NULL){
+
+  Date <- NULL
 
   # use last date in temp series if no series_ending date given
   if(is.null(series_ending)){
@@ -200,7 +228,7 @@ getCalendarDayMeans <-
   subdat <- subset(temp_hist, Date >= start_end_dates[2])
 
   # calculate calendar day means
-  calday_means <- aggregate(Tmean ~ calday, FUN = mean, data = subdat)
+  calday_means <- stats::aggregate(Tmean ~ calday, FUN = mean, data = subdat)
 
   # rename Tmean column
   calday_means$Tmean_calday <- calday_means$Tmean

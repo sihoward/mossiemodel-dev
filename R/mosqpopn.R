@@ -9,27 +9,6 @@
 # Simon Howard; howards@landcareresearch.co.nz | si.w.howard@gmail.com
 #-------------------------------------------------------------------------#
 
-#' Title
-#'
-#' @param temp_ts temperature time series
-#' @param b number of female eggs per clutch
-#' @param alpha adult mortality rate (1/days)
-#' @param beta larval mortality rate (1/days)
-#' @param K_L larval carrying capacity (numbers/km^2)
-#' @param M_max max adult density
-#' @param MTD minimum temperature for mosquito development)
-#' @param L_1 Initial instar densities (1-5)
-#' @param L_2 see above
-#' @param L_3 see above
-#' @param L_4 see above
-#' @param L_5 see above
-#' @param M Initial adult density
-#'
-#' @return
-#' @export
-#'
-#' @examples
-
 mosqpopn <- function(temp_ts, # temperature time series
                      b,       # number of female eggs per clutch
                      alpha,   # adult mortality rate (1/days)
@@ -131,7 +110,6 @@ mosqpopn <- function(temp_ts, # temperature time series
 #' @param M Initial adult density
 #' @param Mfloor Minimum adult density
 #'
-#' @return
 #' @export
 #'
 #' @examples
@@ -187,7 +165,7 @@ runModel <- function(# burn-in range
                temp_seq$Tmean[temp_seq$Date %in% run.dates])
 
   # run popn model
-  modOut <- mosqmod::mosqpopn(temp_ts = temp_ts,
+  modOut <- mosqpopn(temp_ts = temp_ts,
                               b = b,
                               alpha = alpha,
                               beta = beta,
@@ -220,6 +198,86 @@ runModel <- function(# burn-in range
 
 
 
+#' Temperature requirements for plasmodium development
+#'
+#' Applies thermal requirements for plasmodium development to temperature time
+#' series.
+#'
+#' Whether the thermal requirements for plasmodium developent are met is
+#' controlled by three values. Minimum threshold temperature (\code{MTT}) for
+#' development is the temperature above which sporogenic development occurs.
+#' Time to development is measured in degree days and is the cumulative sum of
+#' the difference between daily temperatures and the MTT. If temperatures remain
+#' below the MTT longer than the value of \code{timeout} then the cumulative
+#' degree days reset back to zero. Any time the temperature drops below zero
+#' (degress Celsius) the cumulative degree days are also reset to zero.
+#'
+#' Development degree days (\code{devel_degdays}) is the degree days required to
+#' complete development, after which the thermal requirements will be met.
+#'
+#' Defaults for minimum threshold temperature and development degree days are
+#' from LaPointe et al. (2010) and the logoc for resetting degree days follows
+#' Fortini et al. (2020).
+#'
+#' Lapointe DA, Goff ML, Atkinson CT 2010. Thermal constraints to the sporogonic
+#' development and altitudinal distribution of avian malaria plasmodium relictum
+#' in Hawai’i. Journal of Parasitology. 96(2):318–324.
+#'
+#' Berio Fortini L, Kaiser LR, Lapointe DA, Berio L, Kaiser LR, Lapointe DA
+#' 2020. Fostering real-time climate adaptation: Analyzing past, current, and
+#' forecast temperature to understand the dynamic risk to Hawaiian honeycreepers
+#' from avian malaria. Global Ecology and Conservation. 23:e01069.
+#'
+#' @param envtemp temperature time series
+#' @param MTT minimum threshold temperature (MTT) for sporogenic development in plasmodium
+#' @param devel_degdays degree days above MTT to complete development
+#' @param timeout reset cumulative degree days if temperature below MTT for consecutive values
+#'
+#' @return \code{plasmod_devel()} returns a \code{\link[base]{data.frame}} with
+#'   the initial temperature time series ('envtemp'), the physiologically
+#'   effective temperature (temperature minus the MTT: 'phystemp'), days since
+#'   last zero physiologically effective temperature ('lastzero'), degree days
+#'   ('degdays') and whether the thermal requirements for development are met
+#'   ('thermal_req').
+#' @export
+#'
+#' @examples
+#' d <- plasmod_devel(envtemp = (saved_station_temps$`Tmin(C)`[1:(3*365)] +
+#'                      saved_station_temps$`Tmax(C)`[1:(3*365)])/2)
+#' \dontrun{
+#' plot(y = d$envtemp, x = seq_along(d$envtemp), type = "l", ylim = c(0, max(d$envtemp)))
+#' points(y = d$degdays / max(d$degdays) * max(d$envtemp), x = seq_along(d$envtemp),
+#'        type = "l", col = "red")
+#' abline(h = 12.97, col = "blue")
+#' }
+plasmod_devel <- function(envtemp, MTT = 12.97, devel_degdays = 86.21, timeout = 30L){
+
+  if(any(is.na(envtemp))) stop("NAs present in envtemp argument passed to plasmod_devel function")
+
+  # physiologically effective temperature (see Trudgill et al. 2005 p2)
+  phystemp <- (envtemp - MTT) * ((envtemp - MTT) > 0)
+
+  # days since last zero degree day
+  lastzero <- cumsum(phystemp == 0) - cummax(cumsum(phystemp == 0) * (phystemp > 0))
+
+  # cumulative degree days (using physiologically effective temperature)
+  degdays <- cumsum(phystemp)
+
+  ## reset degree days when consecutive days below MTT > timeout or
+  ## environmental temp. zero or less
+  # if > timeout days subtract cumulative phystemp from last day < MTT
+  # if envtemp < 0 subtract cumulative phystemp from last day above zero
+  degdays <- degdays - cummax((lastzero > timeout | envtemp <= 0) * cumsum(phystemp))
+
+  # degrees days meet devel_degdays
+  thermal_req <- degdays >= devel_degdays
+
+  d <- data.frame(envtemp, phystemp, lastzero, degdays, thermal_req)
+
+  return(d)
+}
+
+
 #' Run shiny app locally
 #'
 #' Runs shiny app locally using the 'app/app.R' file included in 'mosqmod'
@@ -229,12 +287,12 @@ runModel <- function(# burn-in range
 #'   temperatures (default = TRUE). Set to FALSE to disable when working on
 #'   restricted networks for example.
 #'
-#' @return
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' mosqmod::runMosqModApp(cliflo_requests = FALSE)
-
+#' }
 runMosqModApp <- function(cliflo_requests = TRUE){
   cliflo_requests <<- cliflo_requests   # add to global environment
   shiny::runApp(appDir = system.file("app", package = "mosqmod"),

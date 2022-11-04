@@ -287,10 +287,17 @@ server <- function(session, input, output) {
 
     # server: popnplot --------------------------------------------------------
     output$popnplot <- renderPlot({
-        validate(
-            need(!is.null(input$selectPopn), "Select checkbox for plotting adults, larvae or both")
-        )
-        mosqmod::plot_popn(resdf = res(), selectPopn = input$selectPopn) + ggplot2::coord_cartesian(ylim = c(0, input$yrng))
+
+      validate(
+        need(input$runModel > 0, "Press 'Run model' to display model results")
+      )
+
+      req(res())
+
+      mosqmod::plot_popn(resdf = res(),
+                         selectPopn = input$selectPopn, include_temp = TRUE,
+                         include_plasmod = TRUE, MTT = 12.97, MTD = input$MTD) +
+        ggplot2::coord_cartesian(ylim = c(0, input$yrng))
     })
 
 
