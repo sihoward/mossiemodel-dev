@@ -165,7 +165,7 @@ runModel <- function(# burn-in range
                temp_seq$Tmean[temp_seq$Date %in% run.dates])
 
   # run popn model
-  modOut <- mosqmod::mosqpopn(temp_ts = temp_ts,
+  modOut <- mosqpopn(temp_ts = temp_ts,
                               b = b,
                               alpha = alpha,
                               beta = beta,
