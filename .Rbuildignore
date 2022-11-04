@@ -7,6 +7,8 @@
 ^\.Renviron$
 ^inst/app/rsconnect$
 ^extras$
+^data-raw$
 ^sketches$
 ^MossieModel - dev$
 ^inst/app/www/MW_LR_Landscape_small_27px height.png$
+^TODO.txt$
