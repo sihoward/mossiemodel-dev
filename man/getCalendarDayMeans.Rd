@@ -12,7 +12,7 @@ getCalendarDayMeans(
 }
 \arguments{
 \item{temp_hist}{Temperature time series formatted using
-mosqmod::formatTempSeq.}
+\code{\link[mosqmod]{formatTempSeq}}.}
 
 \item{lookback}{Subset the historical time series starting at a past date.
 Must match the format for the 'by' argument in \code{\link{seq.Date}}.}
@@ -20,9 +20,6 @@ Must match the format for the 'by' argument in \code{\link{seq.Date}}.}
 \item{series_ending}{Subset the historical time series ending date. Must be a
 valid \code{\link{Dates}} object. When set to NULL (default) the most
 recent date in the temperature time series is used.}
-}
-\value{
-
 }
 \description{
 Calculate calendar day mean temperatures from historical series
@@ -33,8 +30,4 @@ example("append_TempSeq")
 temp_hist <- mosqmod::formatTempSeq(temp_hist)
 # using default - 10 years from most recent temperature
 getCalendarDayMeans(temp_hist = temp_hist)
-\dontrun{
-# customised - 5 years from end-2015
-getCalendarDayMeans(temp_hist = temp_hist, lookback = "-5 year", series_ending = as.Date("2015-12-31"))
-}
 }

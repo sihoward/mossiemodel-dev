@@ -19,9 +19,13 @@ plot_popn(
 \item{selectPopn}{Character vector of population component to plot (options are "L", "L_1", "L_2", "L_3", "L_4", "L_5" or "M").}
 
 \item{include_temp}{Include a plot facet of temperature time series (default = TRUE).}
-}
-\value{
 
+\item{include_plasmod}{Include (default = TRUE) shaded regions on plot when
+temperatures are suitable for plasmodium development.}
+
+\item{MTT}{Display minimum temperature threshold for mosquito development.}
+
+\item{MTD}{Display minimum temperature threshold for plasmodium sporogeny.}
 }
 \description{
 Plot time series of population size using model outputs.

@@ -11,13 +11,12 @@ runMosqModApp(cliflo_requests = TRUE)
 temperatures (default = TRUE). Set to FALSE to disable when working on
 restricted networks for example.}
 }
-\value{
-
-}
 \description{
 Runs shiny app locally using the 'app/app.R' file included in 'mosqmod'
 package (i.e. 'Program Files/R/R.X.X.X/library/mosqmod').
 }
 \examples{
+\dontrun{
 mosqmod::runMosqModApp(cliflo_requests = FALSE)
+}
 }

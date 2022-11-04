@@ -14,9 +14,6 @@ plot_popn_years(
 
 \item{selectPopn}{Character vector of population component to plot (options are "L", "L_1", "L_2", "L_3", "L_4", "L_5" or "M").}
 }
-\value{
-
-}
 \description{
 Population size time series of model outputs with years overlaid.
 }

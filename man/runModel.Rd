@@ -59,9 +59,6 @@ runModel(
 
 \item{Mfloor}{Minimum adult density}
 }
-\value{
-
-}
 \description{
 Run mosquito population model.
 }

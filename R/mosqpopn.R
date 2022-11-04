@@ -110,7 +110,6 @@ mosqpopn <- function(temp_ts, # temperature time series
 #' @param M Initial adult density
 #' @param Mfloor Minimum adult density
 #'
-#' @return
 #' @export
 #'
 #' @examples
@@ -246,9 +245,10 @@ runModel <- function(# burn-in range
 #' d <- plasmod_devel(envtemp = (saved_station_temps$`Tmin(C)`[1:(3*365)] +
 #'                      saved_station_temps$`Tmax(C)`[1:(3*365)])/2)
 #' \dontrun{
-#'   plot(y = d$envtemp, x = seq_along(d$envtemp), type = "l", ylim = c(0, max(d$envtemp)))
-#'   points(y = d$degdays / max(d$degdays) * max(d$envtemp), x = seq_along(d$envtemp), type = "l", col = "red")
-#'   abline(h = 12.97, col = "blue")
+#' plot(y = d$envtemp, x = seq_along(d$envtemp), type = "l", ylim = c(0, max(d$envtemp)))
+#' points(y = d$degdays / max(d$degdays) * max(d$envtemp), x = seq_along(d$envtemp),
+#'        type = "l", col = "red")
+#' abline(h = 12.97, col = "blue")
 #' }
 plasmod_devel <- function(envtemp, MTT = 12.97, devel_degdays = 86.21, timeout = 30L){
 
@@ -287,12 +287,12 @@ plasmod_devel <- function(envtemp, MTT = 12.97, devel_degdays = 86.21, timeout =
 #'   temperatures (default = TRUE). Set to FALSE to disable when working on
 #'   restricted networks for example.
 #'
-#' @return
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' mosqmod::runMosqModApp(cliflo_requests = FALSE)
-
+#' }
 runMosqModApp <- function(cliflo_requests = TRUE){
   cliflo_requests <<- cliflo_requests   # add to global environment
   shiny::runApp(appDir = system.file("app", package = "mosqmod"),
