@@ -224,7 +224,7 @@ getCalendarDayMeans <-
     stop("Historical temperatures start after date range for calendar dat averages")
   }
 
-  # subset the 10 years of past temperatures
+  # only keep past temperatures in specified date range
   subdat <- subset(temp_hist, Date >= start_end_dates[2])
 
   # calculate calendar day means
