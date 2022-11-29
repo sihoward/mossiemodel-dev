@@ -254,25 +254,13 @@ plasmod_devel <- function(envtemp, MTT = 12.97, devel_degdays = 86.21, timeout =
 
   if(any(is.na(envtemp))) stop("NAs present in envtemp argument passed to plasmod_devel function")
 
-  # physiologically effective temperature (see Trudgill et al. 2005 p2)
-  phystemp <- (envtemp - MTT) * ((envtemp - MTT) > 0)
-
-  # days since last zero degree day
-  lastzero <- cumsum(phystemp == 0) - cummax(cumsum(phystemp == 0) * (phystemp > 0))
-
-  # cumulative degree days (using physiologically effective temperature)
-  degdays <- cumsum(phystemp)
-
-  ## reset degree days when consecutive days below MTT > timeout or
-  ## environmental temp. zero or less
-  # if > timeout days subtract cumulative phystemp from last day < MTT
-  # if envtemp < 0 subtract cumulative phystemp from last day above zero
-  degdays <- degdays - cummax((lastzero > timeout | envtemp <= 0) * cumsum(phystemp))
+  # get degree days above minimum threshold temperature
+  out <- getDegreeDays(envtemp, developtemp = MTT, timeout)
 
   # degrees days meet devel_degdays
-  thermal_req <- degdays >= devel_degdays
+  thermal_req <- out$degdays >= devel_degdays
 
-  d <- data.frame(envtemp, phystemp, lastzero, degdays, thermal_req)
+  d <- data.frame(out, thermal_req)
 
   return(d)
 }

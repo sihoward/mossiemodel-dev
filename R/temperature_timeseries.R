@@ -243,6 +243,60 @@ getCalendarDayMeans <-
   return(calday_means)
 }
 
+# get degree days above developmental temperature ('develtemp') from
+# environmental temperature time series
+#
+# environmental temperatures are input and the developmental temperature is
+# subtracted to get the physiologically effective temperature, and degrees days
+# are the cumulative sum of the physiologically effective temperature
+#
+# can set a timeout of consecutive days below physiologically effective
+# temperature after which the degree days are reset back to zero. This
+# represents that an animal cannot stay below physiological temperature
+# indefinitely.
+#
+# see Trudgill et al. (2005) for details:
+#
+# Trudgill et al. 2005. Thermal time - Concepts and utility.
+# Annals of Applied Biology. 146(1):1–14.
+getDegreeDays <- function(envtemp, developtemp, timeout){
+
+  # physiologically effective temperature (see Trudgill et al. 2005 p2)
+  phystemp <- (envtemp - developtemp) * ((envtemp - developtemp) > 0)
+
+  # days since last zero degree day
+  lastzero <- cumsum(phystemp == 0) - cummax(cumsum(phystemp == 0) * (phystemp > 0))
+
+  # cumulative degree days (using physiologically effective temperature)
+  degdays <- cumsum(phystemp)
+
+  # reset degree days when consecutive days below developmental temperature is
+  # greater than the timeout
+  # if > timeout days subtract cumulative phystemp from last day < developmental temperature
+  # if envtemp < 0 subtract cumulative phystemp from last day above zero
+  degdays <- degdays - cummax((lastzero > timeout | envtemp <= 0) * cumsum(phystemp))
+
+  # combine temp series into dataframe
+  d <- data.frame(envtemp, phystemp, lastzero, degdays)
+  # add developmental temperature as attribute
+  attributes(d) <- c(attributes(d), developtemp = developtemp)
+
+  return(d)
+}
+#-------------------------------------------------------------------------#
+# getDegreeDays() example
+# get fomatted temp series (no gaps, interpolated mean temps)
+# d <- formatTempSeq(subset(data.frame(saved_station_temps), Station == "Nugget Point Aws"))
+# envtemp <- d$Tmean
+# # quick checks
+# all(cumsum(envtemp) == getDegreeDays(envtemp, developtemp = 0, timeout = 0L)[["degdays"]])
+# all(getDegreeDays(envtemp, developtemp = 100, timeout = 0L)[["degdays"]] == 0L)
+# # check timeout - should reset from 5 degree days after being at or below
+# # developtemp for five consecutive days
+# getDegreeDays(c(15, rep(10, 9)), developtemp = 10, timeout = 5)
+# getDegreeDays(c(15, rep(10, 4), 15, rep(10, 4)), developtemp = 10, timeout = 5)
+#-------------------------------------------------------------------------#
+
 
 
 
