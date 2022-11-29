@@ -297,7 +297,92 @@ getDegreeDays <- function(envtemp, developtemp, timeout){
 # getDegreeDays(c(15, rep(10, 4), 15, rep(10, 4)), developtemp = 10, timeout = 5)
 #-------------------------------------------------------------------------#
 
+#' TODO
+#'
+#' @param temp_hist TODO
+#' @param lookback TODO
+#' @param series_ending TODO
+#' @param developtemp TODO
+#' @param timeout TODO
+#'
+#' @export
+#'
+#' @examples
+#' temp_hist <- formatTempSeq(subset(data.frame(saved_station_temps),
+#'                                   Station == "Nugget Point Aws"))
+#' meanDegDays <- getCalendarDegreeDays(temp_hist, developtemp = 12.97, timeout = 30L)
+#' head(meanDegDays, 15)
+#'
+#' \dontrun{
+#'   # plot historical temperatures, degree days and degree day means
+#'   # - blue lines are mean temperatures with a trace for each calendar year
+#'   # - black lines are degree days based on historical mean temperatures
+#'   # - red lines are the calendar day means for degree days
+#'   # - NOTE: the scales for degree days are adjusted to plot alongside mean
+#'   #   temperatures and do not correspond to the y axis
+#'   library(ggplot2)
+#'   temp_hist$Year <- as.numeric(format(temp_hist$Date, "%Y"))
+#'   temp_hist <- subset(temp_hist, Year %in% 2016:2020)
+#'   temp_hist$degdays <-
+#'     getDegreeDays(temp_hist$Tmean, developtemp = 12.97,
+#'                   timeout = 30L)[["degdays"]]
+#'
+#'   ggplot(data = temp_hist, aes(x = as.numeric(factor(calday)), group = Year)) +
+#'     geom_line(aes(y = Tmean), color = "blue") +
+#'     geom_line(aes(y = degdays/365*25)) +
+#'     geom_line(data = meanDegDays, aes(x = as.numeric(factor(calday)),
+#'                                       y = meanDegDays/365*25),
+#'               color = "red", inherit.aes = FALSE) +
+#'     geom_hline(aes(yintercept = 12.97)) + labs(x = "Calendar day") # +
+#'   # facet_wrap(~ Year)           ## uncomment to show separate years
+#' }
+getCalendarDegreeDays <-
+  function(temp_hist,
+           lookback = "-10 year",
+           series_ending = NULL,
+           developtemp,
+           timeout){
 
+    # temp_hist <- formatTempSeq(subset(data.frame(saved_station_temps), Station == "Dunedin, Musselburgh Ews"))
+    # lookback <- "-10 year"
+    # series_ending <- NULL
+    # developtemp <- 12.97
+    # timeout <- 30L
 
+    Date <- NULL
 
+    # use last date in temp series if no series_ending date given
+    if(is.null(series_ending)){
+      series_ending <- max(temp_hist$Date)
+    }
+
+    # get dates starting the specified range
+    start_end_dates <- seq(series_ending, by = lookback, length.out = 2)
+
+    # check supplied historical date range matches period to average over
+    if(min(temp_hist$Date) > start_end_dates[2]){
+      stop("Historical temperatures start after date range for calendar day averages")
+    }
+
+    # only keep past temperatures in specified date range
+    subdat <- subset(temp_hist, Date >= start_end_dates[2])
+
+    # get degree days
+    subdat$degdays <- getDegreeDays(subdat$Tmean, developtemp, timeout)[["degdays"]]
+
+    # calculate calendar day mean degree days
+    calday_means <- stats::aggregate(degdays ~ calday, FUN = mean, data = subdat)
+
+    # rename Tmean column
+    calday_means$meanDegDays <- calday_means$degdays
+    calday_means$degdays <- NULL
+
+    # replace leap day with mean for 28th Feb
+    calday_means$meanDegDays[calday_means$calday == "02-29"] <-
+      calday_means$meanDegDays[calday_means$calday == "02-28"]
+
+    attr(calday_means, "start_end_dates") <- start_end_dates
+
+    return(calday_means)
+  }
 

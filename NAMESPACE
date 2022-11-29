@@ -3,6 +3,7 @@
 export(append_TempSeq)
 export(formatTempSeq)
 export(getCalendarDayMeans)
+export(getCalendarDegreeDays)
 export(plasmod_devel)
 export(plot_popn)
 export(plot_popn_years)
