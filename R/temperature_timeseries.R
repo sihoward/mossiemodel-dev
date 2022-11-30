@@ -181,6 +181,104 @@ project_TempSeq <- function(temp_seq = temp_seq,
   return(temp_proj)
 }
 
+
+#' Projected degree days temperatures from current difference between degree
+#' days and calendar degree days
+#'
+#' @param temp_seq Formatted temperature time series from
+#'   \code{\link[mosqmod]{formatTempSeq}}.
+#' @param extend_days Number of days to extend time series.
+#' @param developtemp TODO
+#' @param timeout TODO
+#' @param cal_degday_means Calendar degree day means used to calculate
+#'   differences between historical and recent degree days. Generated using
+#'   from \code{\link[mosqmod]{getCalendarDegreeDays}}.
+#'
+#' @export
+#'
+#' @examples
+#' data("saved_station_temps")
+#' temp_seq <- formatTempSeq(subset(data.frame(saved_station_temps),
+#'                                  Station == "Nugget Point Aws"))
+#' # calculate mean degree days for each celendar day on last ten years
+#' cal_degday_means <- getCalendarDegreeDays(temp_hist = temp_seq,
+#'                                           lookback = "-10 year",
+#'                                           developtemp = 12.97, timeout = 30)
+#' # pass last year of temperature time series and project degree days
+#' project_DegreeDays(temp_seq = tail(temp_seq, 365),
+#'                    extend_days = 30,
+#'                    developtemp = 12.97, timeout = 30,
+#'                    cal_degday_means = cal_degday_means)
+project_DegreeDays <- function(temp_seq = temp_seq,
+                               extend_days = 30,
+                               developtemp,
+                               timeout,
+                               cal_degday_means){
+
+  # check current temperature sequence covers > 1 year
+  if(nrow(temp_seq) < 365){
+    stop("project_DegreeDays(): Temperature time series < 1 year.
+         1+ years of temperatures (covering a winter) needed to project degree days")
+  }
+
+  # latest date in recorded temperatures
+  date_latest <- max(temp_seq$Date)
+
+  # projected degree days
+  degday_proj <- data.frame(Date = seq(date_latest + 1, date_latest + extend_days, 1),
+                            degdays = NA, calday = NA, source = "projected")
+  degday_proj$calday <- format(degday_proj$Date, "%m-%d")
+
+  # add calendar day means
+  temp_seq <- dplyr::left_join(temp_seq, cal_degday_means)
+  degday_proj <- dplyr::left_join(degday_proj, cal_degday_means)
+
+  # adjust historical mean +/- difference between historical and current degree days
+  # - average difference from calendar day mean for last recorded n days
+  # - difference to calendar day mean
+
+  # get degree days from entire temperature time series up to present
+  degdays_past <- getDegreeDays(temp_seq$Tmean, developtemp, timeout)
+  temp_seq$degdays <- degdays_past[["degdays"]]
+
+  # check that degree days are reset via timeout sometime in the last year
+  if(all(utils::tail(degdays_past$lastzero, 365) == 0L)){
+    stop("No timeout triggered in degree day timeseries; temperatures never < development temperature in previous 365 days")
+  }
+
+  # get difference between current and annual mean degree days on the same calendar day
+  degdays_delta <- temp_seq$degdays[temp_seq$Date == date_latest] - temp_seq$meanDegDays[temp_seq$Date == date_latest]
+
+  # if(abs(degdays_delta) > 10)
+  if(as.numeric(format(date_latest, "%m")) %in% 5:7){
+    warning("degree days typically reset to zero from May-Aug. ",
+            "Adjusting mean calendar day degree-days using current temperatures is unreliable around these months...\n",
+            "using unadjusted mean calendar day degree-days")
+    degdays_delta <- 0
+  }
+  if(abs(degdays_delta) > 50){
+    warning("difference in mean calendar day degree-days and current degree-days is > +/- 50 degree-days ...\nusing unadjusted mean calendar day degree-days")
+    degdays_delta <- 0
+  }
+
+  message(sprintf("difference in degree days between current and past degree days for latest date = %0.3f degreesC", degdays_delta))
+
+  # add difference to calendar day degree days
+  degday_proj$degdays <- degday_proj$meanDegDays + degdays_delta
+
+  #------------------------------------------------------------------------------#
+  # plots for troubleshooting
+  #
+  # plotddays <- c(tail(temp_seq$degdays, 100), degday_proj$degdays)
+  # plot(plotddays, type = "l", ylim = range(c(degday_proj$meanDegDays, plotddays)))
+  # lines(c(tail(temp_seq$meanDegDays, 100), degday_proj$meanDegDays), type = "l", col = "red")
+  # lines(c(rep(0, 100), degday_proj$degdays), type = "l", col = "blue")
+
+  return(degday_proj)
+}
+
+
+
 #' Calculate calendar day mean temperatures from historical series
 #'
 #' @param temp_hist Temperature time series formatted using
