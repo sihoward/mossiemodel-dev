@@ -5,7 +5,7 @@
 \alias{saved_station_temps}
 \title{Stored temperature time series}
 \format{
-An object of class \code{cfTemp} with 15899 rows and 12 columns.
+An object of class \code{cfTemp} with 16685 rows and 12 columns.
 }
 \usage{
 saved_station_temps
