@@ -341,22 +341,26 @@ getCalendarDayMeans <-
   return(calday_means)
 }
 
-# get degree days above developmental temperature ('develtemp') from
-# environmental temperature time series
-#
-# environmental temperatures are input and the developmental temperature is
-# subtracted to get the physiologically effective temperature, and degrees days
-# are the cumulative sum of the physiologically effective temperature
-#
-# can set a timeout of consecutive days below physiologically effective
-# temperature after which the degree days are reset back to zero. This
-# represents that an animal cannot stay below physiological temperature
-# indefinitely.
-#
-# see Trudgill et al. (2005) for details:
-#
-# Trudgill et al. 2005. Thermal time - Concepts and utility.
-# Annals of Applied Biology. 146(1):1–14.
+#' Degree days above developmental temperature from temperature time series
+#'
+#' Environmental temperatures are input and the developmental temperature is
+#' subtracted to get the physiologically effective temperature, and degrees days
+#' are the cumulative sum of the physiologically effective temperature.
+#'
+#' A timeout of consecutive days below physiologically effective temperature can
+#' be used and after which the degree days are reset back to zero. This
+#' represents that an animal cannot stay below physiological temperature
+#' indefinitely.
+#' see Trudgill et al. (2005) for details:
+#'
+#' Trudgill et al. 2005. Thermal time - Concepts and utility.
+#' Annals of Applied Biology. 146(1):1–14.
+#'
+#' @param envtemp TODO
+#' @param developtemp TODO
+#' @param timeout TODO
+#'
+#' @export
 getDegreeDays <- function(envtemp, developtemp, timeout){
 
   # physiologically effective temperature (see Trudgill et al. 2005 p2)
