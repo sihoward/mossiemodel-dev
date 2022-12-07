@@ -228,10 +228,13 @@ runModel <- function(# burn-in range
 #' forecast temperature to understand the dynamic risk to Hawaiian honeycreepers
 #' from avian malaria. Global Ecology and Conservation. 23:e01069.
 #'
-#' @param envtemp temperature time series
+#' @param temp_seq formatted temperature time series from
+#'   \code{\link[mosqmod]{formatTempSeq}}
 #' @param MTT minimum threshold temperature (MTT) for sporogenic development in plasmodium
 #' @param devel_degdays degree days above MTT to complete development
 #' @param timeout reset cumulative degree days if temperature below MTT for consecutive values
+#' @param extend_days TODO
+#' @param cal_degday_means TODO
 #'
 #' @return \code{plasmod_devel()} returns a \code{\link[base]{data.frame}} with
 #'   the initial temperature time series ('envtemp'), the physiologically
@@ -242,27 +245,84 @@ runModel <- function(# burn-in range
 #' @export
 #'
 #' @examples
-#' d <- plasmod_devel(envtemp = (saved_station_temps$`Tmin(C)`[1:(3*365)] +
-#'                      saved_station_temps$`Tmax(C)`[1:(3*365)])/2)
+#' # get stored station temperatures
+#' data(saved_station_temps)
+#' temp_record <-
+#'   formatTempSeq(
+#'     subset(data.frame(saved_station_temps),
+#'            saved_station_temps$Station == "Dunedin, Musselburgh Ews")
+#'   )
+#' # only keep dates up to mid-summer 2021/22
+#' temp_record <- subset(temp_record, Date < as.Date("2022-01-31"))
+#' # get degree days from temp record
+#' temp_record$degdays <-
+#'   getDegreeDays(temp_record$Tmean,
+#'                 developtemp = 12.97, timeout = 10)[["degdays"]]
+#'
+#' # drop last 30 days of temperature record so we have the actual degree days that
+#' # we're projecting out
+#' temp_record_full <- temp_record
+#' temp_record <- head(temp_record_full, nrow(temp_record_full) - 90)
+#'
+#' d <-
+#'   plasmod_devel(temp_seq = tail(temp_record, 365),
+#'                 extend_days = 90,
+#'                 cal_degday_means =
+#'                   getCalendarDegreeDays(temp_hist = temp_record,
+#'                                         developtemp = 12.97, timeout = 30))
 #' \dontrun{
-#' plot(y = d$envtemp, x = seq_along(d$envtemp), type = "l", ylim = c(0, max(d$envtemp)))
-#' points(y = d$degdays / max(d$degdays) * max(d$envtemp), x = seq_along(d$envtemp),
-#'        type = "l", col = "red")
-#' abline(h = 12.97, col = "blue")
+#' plot(y = d$degdays, x = d$Date, type = "n",
+#'      xlab = "Date", ylab = "degree days")
+#' # add recorded degree days
+#' temp_actual <- tail(temp_record_full, 365 + 90)
+#' lines(y = temp_actual$degdays,
+#'       x = temp_actual$Date,
+#'       type = "l", col = "gray")
+#' # projected degree days with plasmodium development risk
+#' lines(y = d$degdays[d$source == "projected" & d$thermal_req],
+#'       x = d$Date[d$source == "projected" & d$thermal_req],
+#'       type = "l", lty = 2, col = "red")
+#' # projected degree days without plasmodium development risk
+#' lines(y = d$degdays[d$source == "projected" & !d$thermal_req],
+#'       x = d$Date[d$source == "projected" & !d$thermal_req],
+#'       type = "l", lty = 2, col = "green")
+#' # show degree day development threshold
+#' abline(h = 86.21, lty = 3, col = "gray")
 #' }
-plasmod_devel <- function(envtemp, MTT = 12.97, devel_degdays = 86.21, timeout = 30L){
+plasmod_devel <- function(temp_seq, MTT = 12.97, devel_degdays = 86.21, timeout = 30L,
+                          extend_days = 0, cal_degday_means = NULL){
 
-  if(any(is.na(envtemp))) stop("NAs present in envtemp argument passed to plasmod_devel function")
+  if(any(is.na(temp_seq$Tmean))) stop("NAs present in envtemp argument passed to plasmod_devel function")
+  if(extend_days > 0 & is.null(cal_degday_means)) stop("plasmod_devel(): calendar day means must be given if extend_days > 0")
+
+  # add degree days column
+  temp_seq$degdays <- getDegreeDays(envtemp = temp_seq$Tmean, developtemp = MTT, timeout = timeout)[["degdays"]]
+  # label provided degree days as 'recorded'
+  temp_seq$source <- "recorded"
+
+  # project degree days if entend days > 0
+  if(extend_days > 0){
+    # extend_days <- 30
+    degdays_projected <-
+      project_DegreeDays(temp_seq = temp_seq, developtemp = MTT,
+                          extend_days = extend_days, timeout = timeout,
+                          cal_degday_means = cal_degday_means)
+
+  } else {
+    # NULL degdays_projected gets ignored in rbind() below
+    degdays_projected <- NULL
+  }
+
+  # combine recorded and projected degree dates for selected columns
+  degdays <- rbind(temp_seq[c("Date", "source", "degdays")],
+                   degdays_projected[c("Date", "source", "degdays")])
+
 
   # get degree days above minimum threshold temperature
-  out <- getDegreeDays(envtemp, developtemp = MTT, timeout)
-
   # degrees days meet devel_degdays
-  thermal_req <- out$degdays >= devel_degdays
+  degdays$thermal_req <- degdays$degdays >= devel_degdays
 
-  d <- data.frame(out, thermal_req)
-
-  return(d)
+  return(degdays)
 }
 
 
