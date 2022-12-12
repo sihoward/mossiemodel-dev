@@ -130,7 +130,7 @@ server <- function(session, input, output) {
         }
 
         ## get past temperature series ----
-        dat <- temp_past()
+        dat <- subset(temp_past(), Date <= input$runDates[2])
 
         # calculate calendar day means
         calday_means <- mosqmod::getCalendarDayMeans(temp_hist = dat)
@@ -139,12 +139,12 @@ server <- function(session, input, output) {
         if(input$extend_days > 0) {
             # add projected temperatures
             temp_projected <-
-                mosqmod::project_TempSeq(temp_seq = temp_past(),
+                mosqmod::project_TempSeq(temp_seq = dat,
                                          extend_days = input$extend_days, lookback_days = 90,
                                          calday_means = calday_means)
-            temp_seq <- dplyr::bind_rows(temp_past(), temp_projected)
+            temp_seq <- dplyr::bind_rows(dat, temp_projected)
         } else {
-            temp_seq <- temp_past()
+            temp_seq <- dat
         }
 
         return(temp_seq)
@@ -153,27 +153,15 @@ server <- function(session, input, output) {
 
 
     # server: update projected days if end date > projected days --------------
-    observeEvent({
-        input$runDates
-        input$extend_days},
-        {
-            latest_record <- max(temp_seq()$Date[temp_seq()$source %in% c("stored", "retreived")])
+    observe({
+      latest_record <- max(temp_seq()$Date[temp_seq()$source %in% c("stored", "retreived")])
 
-            if(input$runDates[2] == Sys.Date()){
-                updateDateRangeInput(session, inputId = "runDates", end = Sys.Date() + (input$extend_days - 1))
-            }
+      # update date range if runDates doesn't equal latest retreived record
+      if(latest_record != input$runDates[2]){
+        updateDateRangeInput(session, inputId = "runDates", end = latest_record)
+      }
 
-            # if last run date is > last retreived record + extend days, reset to last retreived record + extend days
-            if((latest_record + input$extend_days) < input$runDates[2]){
-                updateDateRangeInput(session, inputId = "runDates", end = (latest_record + input$extend_days))
-            }
-
-            # if last run date < last retreived record + extend days, reset to last retreived record + extend days
-            if((latest_record + input$extend_days) > input$runDates[2]){
-                updateDateRangeInput(session, inputId = "runDates", end = (latest_record + input$extend_days))
-            }
-
-        }, priority = 1)
+    }, priority = 1)
 
 
     # server: runModel() ------------------------------------------------------
@@ -193,20 +181,11 @@ server <- function(session, input, output) {
 
         showNotification(id = "model_update", ui = "Running model ...", duration = NULL)
 
-        # at startup input$runDates[2] defaults to system date
-        #  - extend last day if last run date matches system date before
-        #    updateDateRangeInput() runs to update input$runDates values
-        if(input$runDates[2] == Sys.Date()){
-            run.date.last <- Sys.Date() + (input$extend_days-1)
-        } else {
-            run.date.last <- input$runDates[2]
-        }
-
         # run model function
         model_results <- mosqmod::runModel(temp_seq = temp_seq(),
                           burnin.dates = seq(input$burninDates[1], input$burninDates[2], 1),
                           run.dates = seq(from = input$runDates[1],
-                                          to = run.date.last,
+                                          to = max(temp_seq()$Date),
                                           by = "1 day"),
                           M = input$Mfloor, Mfloor = input$Mfloor,
                           MTD = input$MTD,
