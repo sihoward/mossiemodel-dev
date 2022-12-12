@@ -29,8 +29,11 @@ ui.sidebar <-
          numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100),
          numericInput(inputId = "extend_days",label = "Project temperature by n days", value = 30),
          actionButton(inputId = "runModel", label = "Run model", width = '100%'),
-         conditionalPanel('false',
+         conditionalPanel('true',
                           numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783),
+                          numericInput(inputId = "degdays.plasmod.devel", label = "Degree days for plasmodium development", value = 86.21),
+                          numericInput(inputId = "timeout.plasmod.devel", label = "Days below MTT that reset plasmodium development", value = 30),
+                          numericInput(inputId = "MTT", label = "Minimum temperature for plasmodium development", value = 12.97),
                           wellPanel(numericInput(inputId = "burnin.reps", label = "Repeat burnin sequence n times", value = 100),
                                     numericInput(inputId = "yrng", label = "set plot y scale maximum", value = NULL)))
          )
@@ -116,7 +119,7 @@ server <- function(session, input, output) {
 
     })
 
-    # server: projected temperatures from calendar day means ------------------
+    # server: projected degree days and temperatures ----
     temp_seq <- reactive({
 
         # checks for input$extend_days
@@ -148,6 +151,22 @@ server <- function(session, input, output) {
         return(temp_seq)
     })
 
+    ## calendar degree day means for plasmod dev ----
+    calDegDay_means_plasmod <-
+      reactive({
+        getCalendarDegreeDays(temp_hist = temp_past(), lookback = "-10 year",
+                              developtemp = input$MTT, timeout = input$timeout.plasmod.devel)
+      })
+
+    ## plasmodium development requirements ----
+    plasmod_devel_seq <-
+      reactive({
+      # browser()
+      mosqmod::plasmod_devel(temp_seq = temp_seq(), MTT = input$MTT,
+                    devel_degdays = input$degdays.plasmod.devel,
+                    timeout = input$timeout.plasmod.devel, extend_days = input$extend_days,
+                    cal_degday_means = calDegDay_means_plasmod())
+    })
 
 
     # server: update projected days if end date > projected days --------------
@@ -277,7 +296,7 @@ server <- function(session, input, output) {
 
       mosqmod::plot_popn(resdf = res(),
                          selectPopn = input$selectPopn, include_temp = TRUE,
-                         include_plasmod = TRUE, MTT = 12.97, MTD = input$MTD) +
+                         plasmod_devel = plasmod_devel_seq(), MTT = 12.97, MTD = input$MTD) +
         ggplot2::coord_cartesian(ylim = c(0, input$yrng))
     })
 
