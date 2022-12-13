@@ -31,9 +31,7 @@ ui.sidebar <-
          actionButton(inputId = "runModel", label = "Run model", width = '100%'),
          conditionalPanel('false',
                           numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783),
-                          wellPanel(dateRangeInput("burninDates", label = "Run model burn-in over date range",
-                                                   start = as.Date("2016-07-01"), end = as.Date("2017-06-30")),
-                                    numericInput(inputId = "burnin.reps", label = "Repeat burnin sequence n times", value = 100),
+                          wellPanel(numericInput(inputId = "burnin.reps", label = "Repeat burnin sequence n times", value = 100),
                                     numericInput(inputId = "yrng", label = "set plot y scale maximum", value = NULL)))
          )
 
@@ -181,9 +179,13 @@ server <- function(session, input, output) {
 
         showNotification(id = "model_update", ui = "Running model ...", duration = NULL)
 
+        # set burn-in dates to be preceeding year
+        burnin.start <- seq(input$runDates[1], length.out = 2, by = "-1 year")[2]
+        burnin.end <- input$runDates[1] - 1
+
         # run model function
         model_results <- mosqmod::runModel(temp_seq = temp_seq(),
-                          burnin.dates = seq(input$burninDates[1], input$burninDates[2], 1),
+                          burnin.dates = seq(burnin.start, burnin.end, 1),
                           run.dates = seq(from = input$runDates[1],
                                           to = max(temp_seq()$Date),
                                           by = "1 day"),
