@@ -192,7 +192,9 @@ server <- function(session, input, output) {
             need(input$runDates[1] >= min(temp_seq()$Date)+365,
                      sprintf("Select a start date after %s", min(temp_seq()$Date)+364)),
             need(grepl("07-01", format(input$runDates[1], "%m-%d")),
-                 sprintf("Select a 1st July start date after %s", min(temp_seq()$Date)+364))
+                 sprintf("Select a 1st July start date after %s", min(temp_seq()$Date)+364)),
+            need(as.numeric(input$runDates[2] - input$runDates[1]) >= 365,
+                 sprintf("Select an end date after %s", input$runDates[1]+364))
         )
 
 
