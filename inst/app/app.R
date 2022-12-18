@@ -185,7 +185,7 @@ server <- function(session, input, output) {
 
     # server: runModel() ------------------------------------------------------
 
-    res <- reactive({
+    res <- eventReactive({ input$runModel | input$MTD }, {
 
         validate(
             need(!is.na(input$Mfloor) & input$Mfloor > 0, "Enter a starting number of adult mosquitos > 0"),
@@ -221,7 +221,7 @@ server <- function(session, input, output) {
 
         return(model_results)
 
-    })
+    }, ignoreInit = TRUE)
 
 
     # server: download results .csv -------------------------------------------
