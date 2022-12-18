@@ -133,24 +133,22 @@ server <- function(session, input, output) {
         }
 
         ## get past temperature series ----
-        dat <- subset(temp_past(), Date <= input$runDates[2])
+        .dat <- subset(temp_past(), Date <= input$runDates[2])
 
         # calculate calendar day means
-        calday_means <- mosqmod::getCalendarDayMeans(temp_hist = dat)
+        calday_means <- mosqmod::getCalendarDayMeans(temp_hist = .dat)
 
         # project temperature ahead using calendar day means ----
         if(input$extend_days > 0) {
             # add projected temperatures
             temp_projected <-
-                mosqmod::project_TempSeq(temp_seq = dat,
+                mosqmod::project_TempSeq(temp_seq = .dat,
                                          extend_days = input$extend_days, lookback_days = 90,
                                          calday_means = calday_means)
-            temp_seq <- dplyr::bind_rows(dat, temp_projected)
-        } else {
-            temp_seq <- dat
+            .dat <- dplyr::bind_rows(.dat, temp_projected)
         }
 
-        return(temp_seq)
+        return(.dat)
     })
 
     ## calendar degree day means for plasmod dev ----
