@@ -151,13 +151,6 @@ server <- function(session, input, output) {
         return(.dat)
     })
 
-    ## calendar degree day means for plasmod dev ----
-    calDegDay_means_plasmod <-
-      reactive({
-        getCalendarDegreeDays(temp_hist = temp_past(), lookback = "-10 year",
-                              developtemp = input$MTT, timeout = input$timeout.plasmod.devel)
-      })
-
     ## plasmodium development requirements ----
     plasmod_devel_seq <-
       reactive({
