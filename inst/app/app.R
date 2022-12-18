@@ -154,12 +154,21 @@ server <- function(session, input, output) {
     ## plasmodium development requirements ----
     plasmod_devel_seq <-
       reactive({
-      # browser()
-      mosqmod::plasmod_devel(temp_seq = temp_seq(), MTT = input$MTT,
-                    devel_degdays = input$degdays.plasmod.devel,
-                    timeout = input$timeout.plasmod.devel, extend_days = input$extend_days,
-                    cal_degday_means = calDegDay_means_plasmod())
-    })
+
+        # remove projected dates
+        .dat <- subset(temp_seq(), !source %in% "projected" & Date <= input$runDates[2])
+
+        # get calendar degree days from temperature sequence up to selected date range
+        calDegDay_means_plasmod <-
+          getCalendarDegreeDays(temp_hist = .dat, lookback = "-10 year",
+                                                         developtemp = input$MTT, timeout = input$timeout.plasmod.devel)
+
+        # project degree days using calendar days up to selected date range
+        mosqmod::plasmod_devel(temp_seq = .dat, MTT = input$MTT,
+                               devel_degdays = input$degdays.plasmod.devel,
+                               timeout = input$timeout.plasmod.devel, extend_days = input$extend_days,
+                               cal_degday_means = calDegDay_means_plasmod)
+      })
 
 
     # server: update projected days if end date > projected days --------------
