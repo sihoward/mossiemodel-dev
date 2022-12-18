@@ -185,9 +185,26 @@ server <- function(session, input, output) {
 
     # server: runModel() ------------------------------------------------------
 
-    res <- eventReactive({ input$runModel | input$MTD }, {
 
-        validate(
+    # set a reactive value to store model results
+    res <- reactiveVal()
+
+    # reset model result object to NULL when inputs change
+    # - prevents plots alongside changed inputs
+    #   (i.e. can't screenshot results plot with different inputs)
+    observeEvent({
+      input$selectStation           # inputs to look for updated values for
+      input$runDates                # try and keep in order UI appears
+      input$extend_days
+      input$MTD
+      input$degdays.plasmod.devel
+      input$timeout.plasmod.devel
+      input$MTT
+    },{ res(NULL) })
+
+    observeEvent({ input$runModel }, {
+
+      validate(
             need(!is.na(input$Mfloor) & input$Mfloor > 0, "Enter a starting number of adult mosquitos > 0"),
             need(input$Mfloor <= 2710200, "Starting number of adults must be < 2710200"),
             need(!is.na(input$MTD), "Enter a minimum development temperature"),
@@ -219,7 +236,7 @@ server <- function(session, input, output) {
         showNotification("Model completed", duration = 1)
         removeNotification(id = "model_update")
 
-        return(model_results)
+        res(model_results)
 
     }, ignoreInit = TRUE)
 
@@ -293,10 +310,8 @@ server <- function(session, input, output) {
     output$popnplot <- renderPlot({
 
       validate(
-        need(input$runModel > 0, "Press 'Run model' to display model results")
+        need(res(), "Press 'Run model' to display model results")
       )
-
-      req(res())
 
       mosqmod::plot_popn(resdf = res(),
                          selectPopn = input$selectPopn, include_temp = TRUE,
@@ -310,6 +325,8 @@ server <- function(session, input, output) {
         validate(
             need(!is.null(input$selectPopn), "Select checkbox for plotting adults, larvae or both")
         )
+
+        req(res())
 
         mosqmod::plot_popn_years(resdf = res(), selectPopn = input$selectPopn)
     })
