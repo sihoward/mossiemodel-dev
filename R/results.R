@@ -104,6 +104,10 @@ plot_popn <- function(resdf,
                  xmax = rep(enddate, times = length(selectPopn)),
                  ymin = -Inf, ymax = Inf)
 
+    # add a day if xmin and xmax values for rectangle are the same
+    # - geom_rect() doesn't draw the rectangle when x-intercepts are equal
+    devel_windows$xmax <- devel_windows$xmax + as.numeric(devel_windows$xmin == devel_windows$xmax)
+
     # store geoms to draw deveopment windows
     gg_DEVRect <-
       ggplot2::geom_rect(data = devel_windows,
