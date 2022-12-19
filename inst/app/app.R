@@ -19,6 +19,12 @@ library(mosqmod)
 if(!exists("cliflo_requests", envir = globalenv())) cliflo_requests <- TRUE
 
 
+
+# default values ----------------------------------------------------------
+
+MTDspp <- c(cxper = 7.783,  # Niebuhr, 2016. PhD thesis
+            cxqui = 9.9)    # Fortini et al. 2020. DOI: 10.1016/j.gecco.2020.e01069
+
 # UI ----------------------------------------------------------------------
 
 ## UI: sidebar ----
@@ -26,16 +32,27 @@ ui.sidebar <-
     list(selectInput(inputId = "selectStation", label = "Select site",
                      choices = c("Dunedin city (Musselburgh)", "Catlins (Nugget Point)")),
          dateRangeInput("runDates", label = "Run model over date range", start = as.Date("2020-07-01")),
-         numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100),
          numericInput(inputId = "extend_days",label = "Project temperature by n days", value = 30),
          actionButton(inputId = "runModel", label = "Run model", width = '100%'),
-         conditionalPanel('true',
-                          numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = 7.783),
-                          numericInput(inputId = "degdays.plasmod.devel", label = "Degree days for plasmodium development", value = 86.21),
-                          numericInput(inputId = "timeout.plasmod.devel", label = "Days below MTT that reset plasmodium development", value = 30),
-                          numericInput(inputId = "MTT", label = "Minimum temperature for plasmodium development", value = 12.97),
-                          wellPanel(numericInput(inputId = "burnin.reps", label = "Repeat burnin sequence n times", value = 100),
-                                    numericInput(inputId = "yrng", label = "set plot y scale maximum", value = NULL)))
+         hr(),
+         actionButton(inputId = "showAdv", label = "Show advanced inputs", width = '100%'),
+         conditionalPanel('input.showAdv % 2 != 0',
+                          wellPanel(
+                            h4("Mosquito development"),
+                            selectInput(inputId = "selectSpp", label = "Select mosquito species",
+                                        choices = list("Culex pervigilans" = "cxper",
+                                                       "Culex quinquefasciatus" = "cxqui")),
+                            numericInput(inputId = "MTD", label = "Minimum temperature for mosquito development", value = NA),
+                            hr(),
+                            h4("Plasmodium development"),
+                            numericInput(inputId = "MTT", label = "Minimum temperature for plasmodium development", value = 12.97),
+                            numericInput(inputId = "degdays.plasmod.devel", label = "Degree days for plasmodium development", value = 86.21),
+                            numericInput(inputId = "timeout.plasmod.devel", label = "Days below MTT that reset plasmodium development", value = 30),
+                            hr(),
+                            h4("Simulation parameters"),
+                            numericInput(inputId = "Mfloor",label = "Minimum number of adult mosquitos (M)", value = 100),
+                            numericInput(inputId = "burnin.reps", label = "Repeat burnin sequence n times", value = 100)
+                          ))
          )
 
 ## UI: main panel ----
@@ -81,6 +98,24 @@ ui <-
 
 # Define server logic required to draw a histogram
 server <- function(session, input, output) {
+
+
+  # server: UI feedback --------------------------------------------------------
+
+  ## update MTD with selected value for Culex species ----
+  observeEvent( input$selectSpp , {
+    updateNumericInput(inputId = "MTD", value = as.numeric(MTDspp[input$selectSpp]))
+  })
+
+  ## change label for show/hide advanced inputs ----
+  observeEvent(input$showAdv, {
+    if(input$showAdv %% 2 == 0L){
+      updateActionButton(session, inputId = "showAdv", label = "Show advanced inputs")
+    } else {
+      updateActionButton(session, inputId = "showAdv", label = "Hide advanced inputs")
+    }
+  }, ignoreInit = TRUE)
+
 
 
     # server: temperature times series ----
@@ -200,7 +235,10 @@ server <- function(session, input, output) {
       input$degdays.plasmod.devel
       input$timeout.plasmod.devel
       input$MTT
-    },{ res(NULL) })
+    },{
+      req(res())
+      res(NULL)
+    })
 
     observeEvent({ input$runModel }, {
 
@@ -334,8 +372,7 @@ server <- function(session, input, output) {
 
       mosqmod::plot_popn(resdf = res(),
                          selectPopn = input$selectPopn, include_temp = TRUE,
-                         plasmod_devel = plasmod_devel_seq(), MTT = 12.97, MTD = input$MTD) +
-        ggplot2::coord_cartesian(ylim = c(0, input$yrng))
+                         plasmod_devel = plasmod_devel_seq(), MTT = 12.97, MTD = input$MTD)
     })
 
 
