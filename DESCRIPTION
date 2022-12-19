@@ -1,6 +1,6 @@
 Package: mosqmod
 Title: Temperature-dependent mosquito population model
-Version: 1.1.0
+Version: 1.1.0.9000
 Authors@R: 
     person(given = "Simon",
            family = "Howard",
