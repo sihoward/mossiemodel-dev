@@ -248,10 +248,22 @@ server <- function(session, input, output) {
         },
         content = function(file) {
 
-            selectCols <- c("Date", "Station", "Tmean", "L", "M", "source",
-                            "interpolated", "Tmean_calday")
+            # store results
+            .res <- res()
+            .plasmod_devel_seq <- plasmod_devel_seq()
 
-            write.csv(res()[selectCols], file, row.names = FALSE)
+            # choose columns in .res export
+            selectCols <- c("Date", "Station", "Tmean", "L", "M", "source",
+                            "interpolated")
+
+            # find matching dates in plasmod_devel_seq()
+            i.dates <- match(.res$Date, .plasmod_devel_seq$Date)
+
+            # combine mosquito model and avian malaria risk results
+            .dataout <- data.frame(.res[selectCols],
+                       .plasmod_devel_seq[i.dates,c("degdays", "thermal_req")])
+
+            write.csv(.dataout, file, row.names = FALSE)
         }
     )
 
