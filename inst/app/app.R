@@ -249,7 +249,7 @@ server <- function(session, input, output) {
         content = function(file) {
 
             selectCols <- c("Date", "Station", "Tmean", "L", "M", "source",
-                            "datetime", "interpolated", "Tmean_calday")
+                            "interpolated", "Tmean_calday")
 
             write.csv(res()[selectCols], file, row.names = FALSE)
         }
