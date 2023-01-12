@@ -97,8 +97,8 @@ general_info <-
 general_info$Type[-1] <- NA
 
 # format model parameters
-model_params <- attr(res, "params")
-model_params <- data.frame(model_params)
+mosq_params <- attr(res, "params")
+mosq_params <- data.frame(Value = mosq_params)
 
 ## store parameter descriptions
 param_descript <- 
@@ -117,15 +117,16 @@ param_descript <-
     Mfloor = "Mfloor")
 
 ## assign descriptions and format parameter table
-model_params$Description <- param_descript[row.names(model_params)]
-model_params$Value <- format(model_params$model_params, digits = 1, nsmall = 3, 
+mosq_params$Description <- param_descript[row.names(mosq_params)]
+mosq_params$Value <- format(mosq_params$Value, digits = 1, nsmall = 3, 
                              scientific = FALSE, drop0trailing = TRUE)
-model_params$Type <- "Model parameters"
+mosq_params$Type <- "Mosquito parameters"
 
 # separate tables into front page and appendix
-model_params_front <- model_params[6,]
-model_params_appendix <- model_params[-6,]
-model_params_front$Type[-1] <- model_params_appendix$Type[-1] <- NA
+mosq_params_front <- mosq_params[6,]
+mosq_params_appendix <- mosq_params[-6,]
+mosq_params_front$Type[-1] <- mosq_params_appendix$Type[-1] <- NA
+
 # plasmodium parameters
 
 plasmod_params_front <- 
