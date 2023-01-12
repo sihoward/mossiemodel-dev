@@ -107,7 +107,7 @@ param_descript <-
     beta = "Daily larval mortality rate", 
     K_L = "Larval carrying capacity (numbers/km^2)", 
     M_max = "Maximum adult density (numbers/km^2)", 
-    MTD = "Minimum development temperature", 
+    MTD = "Minimum temperature for mosquito development (MTD)", 
     L_1 = "Starting density of first instar larvae", 
     L_2 = "Starting density of second instar larvae",
     L_3 = "Starting density of third instar larvae",
