@@ -77,22 +77,23 @@ plasmod_devel_seq <-
 
 ClimateStation <- unique(res$Station[!is.na(res$Station)])
 ClimateStationID <- clifro::cf_find_station(ClimateStation, search = "name")[["agent"]]
-MossieModel_version <- as.character(packageVersion(pkg = "mosqmod"))
-TimeStamp <- Sys.time()
+  # lookup user-friendly site names using station names
 SiteName <- c("Dunedin, Musselburgh Ews" = "Dunedin", "Nugget Point Aws" = "Catlins")[ClimateStation]
 
+# combine general info into data.frame
+
 general_info <- 
-  data.frame(Type = "General", 
-           Description = c("Site name", 
-                           "Climate station",
-                           "Mosquito species",
-                           "Model version",
-                           "Model timestamp"),
-           Value = c(SiteName, 
-                     paste0(ClimateStation, " (ID:", ClimateStationID, ")"),
-                     "*Culex pervigilans*",
-                     MossieModel_version,
-                     format(TimeStamp, "%Y-%m-%d %H:%M %Z")))
+    data.frame(Type = "General", 
+             Description = c("Site name", 
+                             "Climate station",
+                             "Mosquito species",
+                             "Model version",
+                             "Model timestamp"),
+             Value = c(SiteName, 
+                       paste0(ClimateStation, " (ID:", ClimateStationID, ")"),
+                       paste0("*", attr(res, "species"), "*"),
+                       as.character(attr(res, "mosqmod_ver")),
+                       format(attr(res, "TimeStamp"), "%Y-%m-%d %H:%M %Z")))
 general_info$Type[-1] <- NA
 
 # format model parameters

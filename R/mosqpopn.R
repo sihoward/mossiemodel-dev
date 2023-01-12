@@ -192,6 +192,8 @@ runModel <- function(# burn-in range
   attr(modOut, "temp_seq") <- temp_seq
   attr(modOut, "params") <- c(b = b, alpha = alpha, beta = beta, K_L = K_L, M_max = M_max, MTD = MTD,
                               L_1 = L_1, L_2 = L_2, L_3 = L_3, L_4 = L_4, L_5 = L_5, M = M, Mfloor = Mfloor)
+  attr(modOut, "mosqmod_ver") <- packageVersion("mosqmod")
+  attr(modOut, "TimeStamp") <- Sys.time()
 
   return(modOut)
 }
