@@ -208,11 +208,18 @@ knitr::kable(
 
 <!-- Here is a footnote reference,[^1] and another.[^longnote] -->
 
-```{r render plots, echo=FALSE, fig.align='center', fig.width=8, message=FALSE, warning=FALSE}
-gg_series <- mosqmod::plot_popn(res, selectPopn = c("M")) + ggplot2::theme(text = ggplot2::element_text(size = 10)) #, line = ggplot2::element_line(size = 5))
-gg_overlay <- mosqmod::plot_popn_years(res, selectPopn = c("M")) + ggplot2::theme(text = ggplot2::element_text(size = 10))
+```{r render population plot, echo=FALSE, fig.align='center', fig.width=6, dpi=300, message=FALSE, warning=FALSE}
+
+mosqmod::plot_popn(res, selectPopn = c("M"), include_temp = TRUE, 
+                                plasmod_devel = plasmod_devel_seq, 
+                   MTD = attr(res, "params")[["MTD"]], 
+                   MTT = attr(plasmod_devel_seq, "MTT")) + ggplot2::theme(text = ggplot2::element_text(size = 10)) #, line = ggplot2::element_line(size = 5))
+```
+
+```{r render overlay plot, echo=FALSE, fig.align='center', fig.width=6, dpi=300, message=FALSE, warning=FALSE}
+
+mosqmod::plot_popn_years(res, selectPopn = c("M")) + ggplot2::theme(text = ggplot2::element_text(size = 10))
                                                  
-cowplot::plot_grid(gg_series, gg_overlay)
 ```
 
 \newpage
