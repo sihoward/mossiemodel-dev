@@ -293,7 +293,8 @@ server <- function(session, input, output) {
             output_format <- c(pdf = "pdf_document", word = "word_document")[input$dowloadFormat]
 
             rmarkdown::render(tempReport, output_file = file,
-                              params = list(res = res()),
+                              params = list(res = res(),
+                                            plasmod_devel_seq = plasmod_devel_seq()),
                               output_format = output_format,
                               envir = new.env(parent = globalenv()))
 

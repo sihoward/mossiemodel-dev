@@ -10,6 +10,7 @@ editor_options:
   chunk_output_type: console
 params:
   res: null
+  plasmod_devel_seq: null
 ---
 
 <!-- [![](images/MW_LR_Landscape_lge_blk-01.png){width="200"}](https://www.landcareresearch.co.nz/)   -->
@@ -32,8 +33,11 @@ options(knitr.kable.NA = '')
 ```
 
 ```{r get results, message=FALSE, warning=FALSE, include=FALSE}
+
 # result object specified in params argument to rmarkdown::render()
 res <- params$res
+plasmod_devel_seq <- params$plasmod_devel_seq
+
 
 # if params argument to rmarkdown::render() is null run model example and use
 # resulting res object
