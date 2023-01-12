@@ -224,9 +224,15 @@ mosqmod::plot_popn_years(res, selectPopn = c("M")) + ggplot2::theme(text = ggplo
 
 \newpage
 
+### APPENDIX
+
 #### Additional parameters
 
 ```{r appendix table, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
 # knit appendix table
-knitr::kable(rbind(model_params_appendix[c("Type", "Description", "Value")], temp_series_appendix), row.names = FALSE, align = c("l", "l", "r"))
+knitr::kable(
+  rbind(mosq_params_appendix[c("Type", "Description", "Value")], 
+        plasmod_params_appendix,
+        temp_series_appendix), 
+  row.names = FALSE, align = c("l", "l", "r"))
 ```
