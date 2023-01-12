@@ -322,6 +322,13 @@ plasmod_devel <- function(temp_seq, MTT = 12.97, devel_degdays = 86.21, timeout 
   # degrees days meet devel_degdays
   degdays$thermal_req <- degdays$degdays >= devel_degdays
 
+  # store function inputs as attributes
+  attr(degdays, "MTT") <- MTT
+  attr(degdays, "devel_degdays") <- devel_degdays
+  attr(degdays, "timeout") <- timeout
+  attr(degdays, "extend_days") <- extend_days
+  attr(degdays, "cal_degday_means") <- cal_degday_means
+
   return(degdays)
 }
 

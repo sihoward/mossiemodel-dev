@@ -484,6 +484,10 @@ getCalendarDegreeDays <-
       calday_means$meanDegDays[calday_means$calday == "02-28"]
 
     attr(calday_means, "start_end_dates") <- start_end_dates
+    attr(calday_means, "lookback") <- lookback
+    attr(calday_means, "series_ending") <- series_ending
+    attr(calday_means, "developtemp") <- developtemp
+    attr(calday_means, "timeout") <- timeout
 
     return(calday_means)
   }

@@ -125,6 +125,22 @@ model_params$Type <- "Model parameters"
 model_params_front <- model_params[6,]
 model_params_appendix <- model_params[-6,]
 model_params_front$Type[-1] <- model_params_appendix$Type[-1] <- NA
+# plasmodium parameters
+
+plasmod_params_front <- 
+  data.frame(Type = "Plasmodium parameters", 
+           Description = 
+             c("Minimum temperature for plasmodium development (MTT)", 
+               "Degree days above MTT to complete plasmodium development"), 
+           Value = c(attr(plasmod_devel_seq, "MTT"), 
+                     attr(plasmod_devel_seq, "devel_degdays")))
+plasmod_params_front$Type[-1] <- NA
+
+plasmod_params_appendix <- 
+  data.frame(Type = "Plasmodium parameters", 
+           Description = 
+             c("Number of days below minimum temperature for development that reset degree days"), 
+           Value = c(attr(plasmod_devel_seq, "timeout")))
 
 # temperature series
 
