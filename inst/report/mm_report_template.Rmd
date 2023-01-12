@@ -45,6 +45,30 @@ if(is.null(params$res)) example("runModel", package = "mosqmod")
 
 ```
 
+```{r get example results, message=FALSE, warning=FALSE, include=FALSE, results=FALSE}
+
+# run this chunk to get dummy inputs when running troubleshooting/developing the markdown document
+# set the 'eval' chunk option back to FALSE when finished
+
+library(mosqmod)
+example("runModel")
+
+# set species attribute in results object 
+# (this is typically set using the species drop-down UI in the app)
+attr(res, "species") <- "Culex pervigilans"
+
+# get full temperature sequence used in runModel output
+temp_seq <- attributes(res)$temp_seq
+
+cal_degday_means <- getCalendarDegreeDays(subset(temp_seq, !source %in% "projected"), 
+                                                 developtemp = 12.97, timeout = 30L)
+plasmod_devel_seq <- 
+  plasmod_devel(temp_seq = subset(temp_seq, !source %in% "projected" & Date %in% res$Date),
+              cal_degday_means = cal_degday_means,
+              extend_days = 90L)
+
+```
+
 ### Model parameters
 
 ```{r format parameters, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
