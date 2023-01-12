@@ -236,6 +236,12 @@ server <- function(session, input, output) {
         showNotification("Model completed", duration = 1)
         removeNotification(id = "model_update")
 
+        # set species attribute in results object using UI selection
+        # (includes it in markdown report table)
+        attr(model_results, "species") <-
+          c("cxper" = "Culex pervigilans",
+            "cxqui" = "Culex quinquefasciatus")[input$selectSpp]
+
         res(model_results)
 
     }, ignoreInit = TRUE)
