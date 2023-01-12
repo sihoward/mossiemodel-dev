@@ -170,6 +170,12 @@ date.stored.retreived <- format(attr(mosqmod::saved_station_temps, "access.date"
 daterange.projected <- range(temp_seq$Date[temp_seq$source %in% "projected"])
 daterange.projected.fmt <- paste(daterange.projected, collapse = " to ")
 
+daterange.caldegday <- attr(attr(plasmod_devel_seq, "cal_degday_means"), "start_end_dates")
+daterange.caldegday.fmt <- paste(rev(daterange.caldegday), collapse = " to ")
+
+lookback.caldegday <- attr(attr(plasmod_devel_seq, "cal_degday_means"), "lookback")
+lookback.caldegday.fmt <- sub("\\-", "", lookback.caldegday)
+
 ## format temperature series table
 temp_series <- 
   data.frame(Description = c("Modelled date range", 
@@ -177,9 +183,12 @@ temp_series <-
                              "Burn-in time series repeated",
                              "Stored temperature dates",
                              "Projected temperature dates",
+                             "Calendar degree day dates",
+                             "Date range for calendar degree day calculation",
                              "Stored temperature records retreived"), 
              Value = c(daterange.run.fmt, daterange.burnin.fmt, burnin.reps.fmt,
-                       daterange.stored.fmt, daterange.projected.fmt, date.stored.retreived))
+                       daterange.stored.fmt, daterange.projected.fmt, daterange.caldegday.fmt,
+                       lookback.caldegday.fmt, date.stored.retreived))
 temp_series$Type <- "Temperature time series"
 # separate tables into front page and appendix
 temp_series_front <- temp_series[c(1,5),]
