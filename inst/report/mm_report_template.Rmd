@@ -71,7 +71,7 @@ plasmod_devel_seq <-
 
 ### Model parameters
 
-```{r format parameters, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+```{r format parameters, echo=FALSE, message=FALSE, warning=FALSE}
 
 # general info
 
@@ -194,9 +194,16 @@ temp_series$Type <- "Temperature time series"
 temp_series_front <- temp_series[c(1,5),]
 temp_series_appendix <- temp_series[-c(1,5),]
 temp_series_front$Type[-1] <- temp_series_appendix$Type[-1] <- NA
+```
 
+```{r render front table, echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
 # knit front page table
-knitr::kable(rbind(general_info, model_params_front[c("Type", "Description", "Value")], temp_series_front), row.names = FALSE, align = c("l", "l", "r"))
+knitr::kable(
+  rbind(general_info, 
+        mosq_params_front[c("Type", "Description", "Value")], 
+        plasmod_params_front,
+        temp_series_front), 
+  row.names = FALSE, align = c("l", "l", "r"))
 ```
 
 <!-- Here is a footnote reference,[^1] and another.[^longnote] -->
