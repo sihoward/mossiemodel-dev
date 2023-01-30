@@ -32,7 +32,7 @@ knitr::opts_chunk$set(echo = TRUE)
 options(knitr.kable.NA = '')
 ```
 
-```{r get results, message=FALSE, warning=FALSE, include=FALSE}
+```{r get results, eval=TRUE, message=FALSE, warning=FALSE, include=FALSE}
 
 # result object specified in params argument to rmarkdown::render()
 res <- params$res
@@ -40,7 +40,7 @@ plasmod_devel_seq <- params$plasmod_devel_seq
 
 ```
 
-```{r get example results, message=FALSE, warning=FALSE, include=FALSE, results=FALSE}
+```{r get example results, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, results=FALSE}
 
 # run this chunk to get dummy inputs when running troubleshooting/developing the markdown document
 # set the 'eval' chunk option back to FALSE when finished
