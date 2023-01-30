@@ -22,7 +22,8 @@ Imports:
     tidyr,
     rlang,
     readr,
-    cowplot
+    cowplot,
+    rmarkdown
 Suggests: 
     testthat
 Depends: 
