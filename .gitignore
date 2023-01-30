@@ -62,3 +62,4 @@ emails/
 inst/app/rsconnect
 extras/
 man/
+packrat/lib*/
