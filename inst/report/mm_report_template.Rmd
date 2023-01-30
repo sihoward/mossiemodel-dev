@@ -38,11 +38,6 @@ options(knitr.kable.NA = '')
 res <- params$res
 plasmod_devel_seq <- params$plasmod_devel_seq
 
-
-# if params argument to rmarkdown::render() is null run model example and use
-# resulting res object
-if(is.null(params$res)) example("runModel", package = "mosqmod")
-
 ```
 
 ```{r get example results, message=FALSE, warning=FALSE, include=FALSE, results=FALSE}
