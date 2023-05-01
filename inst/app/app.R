@@ -71,6 +71,9 @@ ui <-
                          h6("Developed by Manaaki Whenua - Landcare Research."),
                          h6("email: ", tags$a(href = "https://www.landcareresearch.co.nz/about-us/our-people/simon-howard", target="_blank", "Simon Howard"), "or",
                             tags$a(href = "https://www.landcareresearch.co.nz/about-us/our-people/chris-niebuhr", target="_blank", "Chris Niebuhr")),
+                         hr(),
+                         h6("Daily temperatures are accessed via CliFlo: NIWA's National Climate Database",
+                            tags$a(href = "https://cliflo.niwa.co.nz/", target="_blank", "https://cliflo.niwa.co.nz")),
                          width = 3),
                   column(ui.main, width = 9)
               )
