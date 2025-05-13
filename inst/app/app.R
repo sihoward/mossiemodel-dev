@@ -16,7 +16,7 @@ library(ggplot2)
 library(mosqmod)
 
 # set cliflo_requests to TRUE if missing
-if(!exists("cliflo_requests", envir = globalenv())) cliflo_requests <- TRUE
+if(!exists("cliflo_requests", envir = globalenv())) cliflo_requests <- FALSE
 
 
 # UI ----------------------------------------------------------------------
@@ -82,6 +82,14 @@ ui <-
 # Define server logic required to draw a histogram
 server <- function(session, input, output) {
 
+
+    # server: notify cliflo shutdown
+    shiny::showModal(ui = shiny::modalDialog(title = "NIWA cliflo service shutdown",
+                                             h5("This application used NIWA's cliflo
+                                                climate service to retreive daily temperature records."),
+                                             h5("This service was retired on 31 October 2024 and was replaced with a paid service for real-time daily temperatures."),
+                                             h5("Temperature records will no longer update automatically and the app will use the latest records that were available on cliflo (up to 28 Oct 2024).")),
+                     session = session)
 
     # server: temperature times series ----
 
