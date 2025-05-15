@@ -290,7 +290,7 @@ server <- function(session, input, output) {
                          selectPopn = input$selectPopn, include_temp = TRUE,
                          include_plasmod = TRUE, MTT = 12.97, MTD = input$MTD) +
         ggplot2::coord_cartesian(ylim = c(0, input$yrng))
-    })
+    }, res = 100)
 
 
     # server: compare years ---------------------------------------------------
@@ -299,8 +299,8 @@ server <- function(session, input, output) {
             need(!is.null(input$selectPopn), "Select checkbox for plotting adults, larvae or both")
         )
 
-        mosqmod::plot_popn_years(resdf = res(), selectPopn = input$selectPopn)
-    })
+      mosqmod::plot_popn_years(resdf = res(), selectPopn = input$selectPopn)
+    }, res = 100)
 
     # server: run lines -------------------------------------------------------
 
