@@ -48,7 +48,6 @@ if(is.null(params$res)) example("runModel", package = "mosqmod")
 # general info
 
 ClimateStation <- unique(res$Station[!is.na(res$Station)])
-ClimateStationID <- clifro::cf_find_station(ClimateStation, search = "name")[["agent"]]
 MossieModel_version <- as.character(packageVersion(pkg = "mosqmod"))
 TimeStamp <- Sys.time()
 SiteName <- c("Dunedin, Musselburgh Ews" = "Dunedin", "Nugget Point Aws" = "Catlins")[ClimateStation]
@@ -61,7 +60,7 @@ general_info <-
                            "Model version",
                            "Model timestamp"),
            Value = c(SiteName, 
-                     paste0(ClimateStation, " (ID:", ClimateStationID, ")"),
+                     ClimateStation,
                      "*Culex pervigilans*",
                      MossieModel_version,
                      format(TimeStamp, "%Y-%m-%d %H:%M %Z")))
