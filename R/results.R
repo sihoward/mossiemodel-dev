@@ -220,7 +220,8 @@ plot_popn_years <- function(resdf,
     ggplot2::scale_x_date(breaks = seq(min(d$Date), by = "3 month", length.out = 5),
                           date_minor_breaks = "1 month",
                           date_label = "%b") +
-    ggplot2::scale_color_brewer(palette = "Dark2") +
+    ggplot2::scale_color_brewer(palette = "Dark2",
+                                guide = ggplot2::guide_legend(override.aes = list(linewidth = 1))) +
     ggplot2::scale_size_discrete(breaks = c("recorded", "projected"), range = c(1,0.5))
 
 
